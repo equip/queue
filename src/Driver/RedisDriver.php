@@ -32,7 +32,7 @@ class RedisDriver implements DriverInterface
      */
     public function pop($queue)
     {
-        list(, $message) = $this->redis->blPop([$queue], 5) ?: null;
+        list($_, $message) = $this->redis->blPop([$queue], 5) ?: null;
         
         return $message;
     }

@@ -20,10 +20,5 @@
         "psr-4": {
             "Equip\\Queue\\": "src/"
         }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "EquipTests\\Queue\\": "tests/"
-        }
     }
 }
