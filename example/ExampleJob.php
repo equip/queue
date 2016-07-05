@@ -2,8 +2,8 @@
 
 class ExampleJob
 {
-    public function __invoke($name, array $data = [], array $meta = [])
+    public function __invoke($message)
     {
-        var_dump($name, $data, $meta);
+        var_dump($message);
     }
 }

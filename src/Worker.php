@@ -85,7 +85,7 @@ class Worker
         }
 
         try {
-            call_user_func_array($handler, $message);
+            call_user_func($handler, $message);
 
             $this->emitter->emit('queue.acknowledge', $message);
         } catch (Exception $exception) {
