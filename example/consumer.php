@@ -13,6 +13,6 @@ $redis->connect('localhost');
 $worker = new Worker(
     new RedisDriver($redis),
     new Emitter,
-    ['name' => new ExampleJob]
+    ['job-name' => new ExampleJob]
 );
-$worker->consume('queue');
+$worker->consume('queue-name');

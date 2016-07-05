@@ -10,7 +10,7 @@ class Queue
      * @var DriverInterface
      */
     private $driver;
-    
+
     /**
      * @param DriverInterface $driver
      */
@@ -23,16 +23,17 @@ class Queue
      * Add message to queue
      *
      * @param string $queue
-     * @param string $name
+     * @param $name
      * @param array $data
+     * @param array $meta
      *
      * @return bool
      */
-    public function add($queue, $name, array $data = [])
+    public function add($queue, $name, $data = [], $meta = [])
     {
-        return $this->driver->push(json_encode([
-            'name' => $name,
-            'data' => $data,
-        ]), $queue);
+        return $this->driver->push(
+            $queue,
+            json_encode(compact('name', 'data', 'meta'))
+        );
     }
 }

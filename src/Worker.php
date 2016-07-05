@@ -3,6 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Message\MessageInterface;
 use Exception;
 use League\Event\EmitterInterface;
 
@@ -26,9 +27,7 @@ class Worker
     /**
      * @var array
      */
-    private $options = [
-        
-    ];
+    private $options = [];
 
     /**
      * @param DriverInterface $driver
@@ -69,55 +68,47 @@ class Worker
      */
     private function tick($queue)
     {
-        $message = $this->driver->pop($queue);
-        $decoded_message = json_decode($message, true);
+        $packet = $this->driver->pop($queue);
 
-        if (empty($decoded_message)) {
+        $message = json_decode($packet, true);
+        if (empty($message)) {
             return true;
         }
 
-        $this->execute(
-            $decoded_message['name'],
-            $decoded_message['data']
-        );
+        $handler = $this->getHandler($message['name'], $this->handlers);
+        if (!$handler) {
+            return true;
+        }
+
+        if (!is_callable($handler)) {
+            return true;
+        }
+
+        try {
+            call_user_func_array($handler, $message);
+
+            $this->emitter->emit('queue.acknowledge', $message);
+        } catch (Exception $exception) {
+            $this->emitter->emit('queue.reject', $exception, $message);
+        }
 
         return true;
     }
 
     /**
-     * Executes the messages handler
+     * Get handler for job
      *
      * @param string $name
-     * @param array $data
+     * @param array $router
      *
-     * @return bool
+     * @return null|string
      */
-    private function execute($name, array $data = [])
+    private function getHandler($name, array $router = [])
     {
-        if (!isset($this->handlers[$name])) {
-            return false;
+        if (!isset($router[$name])) {
+            return null;
         }
 
-        $handler = $this->handlers[$name];
-
-        try {
-            if (is_callable($handler)) {
-                $handler($data);
-            }
-
-            $this->acknowledge($name, $data);
-        } catch (Exception $exception) {
-            $this->reject($exception, $name, $data);
-        }
-    }
-
-    private function acknowledge($name, array $data = [])
-    {
-        $this->emitter->emit('queue.acknowledge', $name, $data);
-    }
-
-    private function reject(Exception $exception, $name, array $data = [])
-    {
-        $this->emitter->emit('queue.reject', $exception, $name, $data);
+        return $router[$name];
     }
 }
