@@ -6,8 +6,6 @@ use Equip\Queue\Driver\DriverInterface;
 
 class Queue
 {
-    const DEFAULT_QUEUE = 'queue';
-    
     /**
      * @var DriverInterface
      */
@@ -23,14 +21,14 @@ class Queue
 
     /**
      * Add message to queue
-     * 
+     *
+     * @param string $queue
      * @param string $name
      * @param array $data
-     * @param string $queue
      *
      * @return bool
      */
-    public function add($name, array $data = [], $queue = self::DEFAULT_QUEUE)
+    public function add($queue, $name, array $data = [])
     {
         return $this->driver->push(json_encode([
             'name' => $name,

@@ -24,18 +24,28 @@ class Worker
     private $handlers;
 
     /**
+     * @var array
+     */
+    private $options = [
+        
+    ];
+
+    /**
      * @param DriverInterface $driver
      * @param EmitterInterface $emitter
      * @param array $handlers
+     * @param array $options
      */
     public function __construct(
         DriverInterface $driver,
         EmitterInterface $emitter,
-        array $handlers = []
+        array $handlers = [],
+        array $options = []
     ) {
         $this->driver = $driver;
         $this->emitter = $emitter;
         $this->handlers = $handlers;
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -43,7 +53,7 @@ class Worker
      *
      * @param string $queue
      */
-    public function consume($queue = Queue::DEFAULT_QUEUE)
+    public function consume($queue)
     {
         declare (ticks = 1);
 
@@ -66,7 +76,10 @@ class Worker
             return true;
         }
 
-        $this->execute($decoded_message['name'], $decoded_message['data']);
+        $this->execute(
+            $decoded_message['name'],
+            $decoded_message['data']
+        );
 
         return true;
     }

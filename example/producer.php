@@ -11,6 +11,10 @@ $redis->connect('localhost');
 $driver = new RedisDriver($redis);
 
 $queue = new Queue($driver);
-$result = $queue->add('name', ['test' => 'example']);
+$result = $queue->add(
+    'queue',
+    'name',
+    ['test' => 'example']
+);
 
 var_dump($result);

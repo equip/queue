@@ -10,13 +10,9 @@ use League\Event\Emitter;
 $redis = new Redis;
 $redis->connect('localhost');
 
-$driver = new RedisDriver($redis);
-
-$emitter = new Emitter;
-
 $worker = new Worker(
-    $driver,
-    $emitter,
+    new RedisDriver($redis),
+    new Emitter,
     ['name' => new ExampleJob]
 );
-$worker->consume();
+$worker->consume('queue');
