@@ -89,7 +89,7 @@ class Worker
 
             $this->emitter->emit('queue.acknowledge', $message);
         } catch (Exception $exception) {
-            $this->emitter->emit('queue.reject', $exception, $message);
+            $this->emitter->emit('queue.reject', $message, $exception);
         }
 
         return true;
