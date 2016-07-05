@@ -23,7 +23,7 @@ class Queue
      * Add message to queue
      *
      * @param string $queue
-     * @param $name
+     * @param string $name
      * @param array $data
      * @param array $meta
      *
