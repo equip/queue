@@ -4,7 +4,6 @@ namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
 use Exception;
-use League\Event\EmitterInterface;
 
 class Worker
 {
@@ -14,9 +13,9 @@ class Worker
     private $driver;
 
     /**
-     * @var EmitterInterface
+     * @var Event
      */
-    private $emitter;
+    private $event;
 
     /**
      * @var array
@@ -30,18 +29,18 @@ class Worker
 
     /**
      * @param DriverInterface $driver
-     * @param EmitterInterface $emitter
+     * @param Event $event
      * @param array $handlers
      * @param array $options
      */
     public function __construct(
         DriverInterface $driver,
-        EmitterInterface $emitter,
+        Event $event,
         array $handlers = [],
         array $options = []
     ) {
         $this->driver = $driver;
-        $this->emitter = $emitter;
+        $this->event = $event;
         $this->handlers = $handlers;
         $this->options = array_merge($this->options, $options);
     }
@@ -86,9 +85,9 @@ class Worker
         try {
             call_user_func($handler, $message);
 
-            $this->acknowledge($message);
+            $this->event->acknowledge($message);
         } catch (Exception $exception) {
-            $this->reject($message, $exception);
+            $this->event->reject($message, $exception);
         }
 
         return true;
@@ -109,38 +108,5 @@ class Worker
         }
 
         return $router[$name];
-    }
-
-    /**
-     * Emits message acknowledgement events
-     *
-     * @param array $message
-     */
-    private function acknowledge(array $message)
-    {
-        $event = 'queue.acknowledge';
-        array_map(function ($name) use ($message) {
-            $this->emitter->emit($name, $message);
-        }, [
-            $event,
-            sprintf('%s.%s', $event, $message['name']),
-        ]);
-    }
-
-    /**
-     * Emits message rejection events
-     *
-     * @param array $message
-     * @param Exception $exception
-     */
-    private function reject(array $message, Exception $exception)
-    {
-        $event = 'queue.reject';
-        array_map(function ($name) use ($message, $exception) {
-            $this->emitter->emit($name, $message, $exception);
-        }, [
-            $event,
-            sprintf('%s.%s', $event, $message['name']),
-        ]);
     }
 }
