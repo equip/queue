@@ -89,12 +89,12 @@ $message = new Equip\Queue\Message(
 
 ### Adding A Message To The Queue
 
-After creating the [producer][Creating A Producer], simply add your `Message` to the queue.
+After creating the [producer](#creating-a-producer), simply add your `Message` to the queue.
 ```PHP
 $result = $queue->add($message);
 ```
 
-A boolean (`$results`) is returned which contains the status of the push onto the queue.
+A boolean (`$result`) is returned which contains the status of the push onto the queue.
 
 ### Creating A Handler
 
