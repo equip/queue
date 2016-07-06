@@ -3,6 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Serializer\MessageSerializerInterface;
 
 class QueueTest extends TestCase
 {
@@ -12,6 +13,11 @@ class QueueTest extends TestCase
     private $driver;
 
     /**
+     * @var MessageSerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @var Queue
      */
     private $queue;
@@ -19,27 +25,31 @@ class QueueTest extends TestCase
     protected function setUp()
     {
         $this->driver = $this->createMock(DriverInterface::class);
-        $this->queue = new Queue($this->driver);
+        $this->serializer = $this->createMock(MessageSerializerInterface::class);
+        $this->queue = new Queue($this->driver, $this->serializer);
     }
 
     public function testAdd()
     {
-        $queue = 'test-queue';
-        $name = 'test-job';
-        $data = ['test' => 'example'];
-        $meta = ['count' => 1];
+        $queue = 'queue';
+        $handler = 'handler';
+        $data = ['foo' => 'bar'];
+
+        $serialized_message = json_encode(compact('queue', 'handler', 'data'));
+        $message = new Message($queue, $handler, $data);
 
         $this->driver
             ->expects($this->once())
             ->method('push')
-            ->with($queue, json_encode(compact('name', 'data', 'meta')))
+            ->with('queue', $serialized_message)
             ->willReturn(true);
 
-        $this->assertTrue($this->queue->add(
-            $queue,
-            $name,
-            $data,
-            $meta
-        ));
+        $this->serializer
+            ->expects($this->once())
+            ->method('serialize')
+            ->with($message)
+            ->willReturn($serialized_message);
+
+        $this->assertTrue($this->queue->add($message));
     }
 }

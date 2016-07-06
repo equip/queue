@@ -4,6 +4,8 @@ namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Exception\HandlerException;
+use Equip\Queue\Serializer\JsonSerializer;
+use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
 
 class Worker
@@ -19,6 +21,11 @@ class Worker
     private $event;
 
     /**
+     * @var MessageSerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @var array
      */
     private $handlers;
@@ -26,15 +33,18 @@ class Worker
     /**
      * @param DriverInterface $driver
      * @param Event $event
+     * @param MessageSerializerInterface $serializer
      * @param array $handlers
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
+        MessageSerializerInterface $serializer = null,
         array $handlers = []
     ) {
         $this->driver = $driver;
         $this->event = $event;
+        $this->serializer = $serializer ?: new JsonSerializer;
         $this->handlers = $handlers;
     }
 
@@ -58,13 +68,13 @@ class Worker
     private function tick($queue)
     {
         $packet = $this->driver->pop($queue);
-
-        $message = json_decode($packet, true);
-        if (empty($message)) {
-            return true;
+        if (empty($packet)) {
+             return true;
         }
 
-        $handler = $this->getHandler($message['name'], $this->handlers);
+        $message = $this->serializer->deserialize($packet);
+
+        $handler = $this->getHandler($message->handler(), $this->handlers);
         if (!$handler) {
             return true;
         }
@@ -85,23 +95,23 @@ class Worker
     }
 
     /**
-     * @param string $name
+     * @param string $handler
      * @param array $router
      *
      * @return null|callable
      * @throws HandlerException If handler is not callable
      */
-    private function getHandler($name, array $router = [])
+    private function getHandler($handler, array $router = [])
     {
-        if (!isset($router[$name])) {
+        if (!isset($router[$handler])) {
             return null;
         }
 
-        $handler = $router[$name];
-        if (!is_callable($handler)) {
-            throw HandlerException::invalidHandler($name);
+        $callable = $router[$handler];
+        if (!is_callable($callable)) {
+            throw HandlerException::invalidHandler($handler);
         }
 
-        return $handler;
+        return $callable;
     }
 }

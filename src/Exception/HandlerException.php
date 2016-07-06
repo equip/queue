@@ -7,14 +7,14 @@ use Exception;
 class HandlerException extends Exception
 {
     /**
-     * @param string $name
+     * @param string $handler
      *
      * @return static
      */
-    public static function invalidHandler($name)
+    public static function invalidHandler($handler)
     {
         return new static(
-            sprintf('The handler for `%s` is invalid.', $name)
+            sprintf('The handler for `%s` is invalid.', $handler)
         );
     }
 }

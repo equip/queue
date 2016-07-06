@@ -25,14 +25,18 @@ class EventTest extends TestCase
 
     public function testAcknowledge()
     {
-        $message = ['name' => 'job-name'];
+        $message = new Message(
+            'queue',
+            'job-name',
+            ['foo' => 'bar']
+        );
 
         $this->emitter
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
                 [Event::QUEUE_ACKNOWLEDGE, $message],
-                [sprintf('%s.%s', Event::QUEUE_ACKNOWLEDGE, $message['name']), $message]
+                [sprintf('%s.%s', Event::QUEUE_ACKNOWLEDGE, $message->handler()), $message]
             );
 
         $this->event->acknowledge($message);
@@ -40,7 +44,12 @@ class EventTest extends TestCase
 
     public function testReject()
     {
-        $message = ['name' => 'job-name'];
+        $message = new Message(
+            'queue',
+            'job-name',
+            ['foo' => 'bar']
+        );
+
         $exception = new Exception;
 
         $this->emitter
@@ -48,7 +57,7 @@ class EventTest extends TestCase
             ->method('emit')
             ->withConsecutive(
                 [Event::QUEUE_REJECT, $message, $exception],
-                [sprintf('%s.%s', Event::QUEUE_REJECT, $message['name']), $message, $exception]
+                [sprintf('%s.%s', Event::QUEUE_REJECT, $message->handler()), $message, $exception]
             );
 
         $this->event->reject($message, $exception);

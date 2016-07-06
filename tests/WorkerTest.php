@@ -4,6 +4,8 @@ namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Exception\HandlerException;
+use Equip\Queue\Serializer\JsonSerializer;
+use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
 
 class WorkerTest extends TestCase
@@ -19,6 +21,11 @@ class WorkerTest extends TestCase
     private $event;
 
     /**
+     * @var MessageSerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @var Worker
      */
     private $worker;
@@ -27,6 +34,7 @@ class WorkerTest extends TestCase
     {
         $this->driver = $this->createMock(DriverInterface::class);
         $this->event = $this->createMock(Event::class);
+        $this->serializer = new JsonSerializer;
         $this->worker = new Worker($this->driver, $this->event);
     }
 
@@ -80,30 +88,32 @@ class WorkerTest extends TestCase
 
     public function testTickInvalidHandler()
     {
-        $queue = 'test-queue';
-        $message = ['name' => 'foo'];
+        $message = [
+            'queue' => 'test-queue',
+            'handler' => 'foo',
+            'data' => ['foo' => 'bar'],
+        ];
 
         $this->driver
             ->expects($this->once())
             ->method('pop')
-            ->with($queue)
+            ->with($message['queue'])
             ->willReturn(json_encode($message));
 
         $method = static::getProtectedMethod($this->worker, 'tick');
-        $this->assertTrue($method->invoke($this->worker, $queue));
+        $this->assertTrue($method->invoke($this->worker, $message['queue']));
     }
 
     public function testTickHandlerException()
     {
-        $queue = 'test-queue';
-        $message = ['name' => 'foo'];
+        $message = new Message('queue', 'foo', ['foo' => 'bar']);
         $exception = new Exception;
 
         $this->driver
             ->expects($this->once())
             ->method('pop')
-            ->with($queue)
-            ->willReturn(json_encode($message));
+            ->with($message->queue())
+            ->willReturn($this->serializer->serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -113,23 +123,23 @@ class WorkerTest extends TestCase
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->serializer,
             ['foo' => function () use ($exception) { throw $exception; }]
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
-        $this->assertTrue($method->invoke($worker, $queue));
+        $this->assertTrue($method->invoke($worker, $message->queue()));
     }
 
     public function testTickHandlerReturnFalse()
     {
-        $queue = 'test-queue';
-        $message = ['name' => 'foo'];
+        $message = new Message('queue', 'foo', ['foo' => 'bar']);
 
         $this->driver
             ->expects($this->once())
             ->method('pop')
-            ->with($queue)
-            ->willReturn(json_encode($message));
+            ->with($message->queue())
+            ->willReturn($this->serializer->serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -139,23 +149,23 @@ class WorkerTest extends TestCase
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->serializer,
             ['foo' => function () { return false; }]
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
-        $this->assertFalse($method->invoke($worker, $queue));
+        $this->assertFalse($method->invoke($worker, $message->queue()));
     }
 
     public function testTick()
     {
-        $queue = 'test-queue';
-        $message = ['name' => 'foo'];
+        $message = new Message('queue', 'foo', ['name' => 'foo']);
 
         $this->driver
             ->expects($this->once())
             ->method('pop')
-            ->with($queue)
-            ->willReturn(json_encode($message));
+            ->with($message->queue())
+            ->willReturn($this->serializer->serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -165,27 +175,27 @@ class WorkerTest extends TestCase
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->serializer,
             [
                 'foo' => function ($data) use ($message) {
-                    $this->assertSame($message['name'], $data['name']);
+                    $this->assertSame($message->handler(), $data->handler());
                 }
             ]
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
-        $this->assertTrue($method->invoke($worker, $queue));
+        $this->assertTrue($method->invoke($worker, $message->queue()));
     }
 
     public function testConsume()
     {
-        $queue = 'test-queue';
-        $message = ['name' => 'foo'];
+        $message = new Message('queue', 'foo', ['name' => 'foo']);
 
         $this->driver
             ->expects($this->once())
             ->method('pop')
-            ->with($queue)
-            ->willReturn(json_encode($message));
+            ->with($message->queue())
+            ->willReturn($this->serializer->serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -195,9 +205,10 @@ class WorkerTest extends TestCase
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->serializer,
             ['foo' => function () { return false; }]
         );
 
-        $worker->consume($queue);
+        $worker->consume($message->queue());
     }
 }
