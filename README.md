@@ -11,12 +11,12 @@
 ##### Available Drivers
  - Redis
 
-Missing the driver you want? [Create it!](Creating A Driver)
+Missing the driver you want? [Create it!](creating-a-driver)
 
 ##### Available Serializers
  - JSON
 
-Missing the serializer you want? [Create it!](Creating A Serializer)
+Missing the serializer you want? [Create it!](creating-a-serializer)
 
 ### Creating A Consumer
 
