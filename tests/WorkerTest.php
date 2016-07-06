@@ -53,10 +53,8 @@ class WorkerTest extends TestCase
 
     public function testGetHandlerNotCallable()
     {
-        $this->setExpectedExceptionRegExp(
-            HandlerException::class,
-            '/The handler for `test` is invalid./'
-        );
+        $this->expectException(HandlerException::class);
+        $this->expectExceptionMessage('The handler for `test` is invalid.');
 
         $name = 'test';
         $routes = [
