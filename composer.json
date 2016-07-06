@@ -1,0 +1,29 @@
+{
+    "name": "equip/queue",
+    "description": "The better queueing library",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Equip Contributors",
+            "homepage": "https://github.com/equip"
+        }
+    ],
+    "require": {
+        "php": ">=5.6",
+        "league/event": "^2.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Equip\\Queue\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Equip\\Queue\\": "tests/"
+        }
+    }
+}
