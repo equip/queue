@@ -3,6 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Exception\HandlerException;
 use Exception;
 
 class Worker
@@ -84,12 +85,11 @@ class Worker
     }
 
     /**
-     * Get handler for job
-     *
      * @param string $name
      * @param array $router
      *
      * @return null|callable
+     * @throws HandlerException If handler is not callable
      */
     private function getHandler($name, array $router = [])
     {
@@ -99,7 +99,7 @@ class Worker
 
         $handler = $router[$name];
         if (!is_callable($handler)) {
-            return null;
+            throw HandlerException::invalidHandler($name);
         }
 
         return $handler;

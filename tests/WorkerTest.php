@@ -3,6 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Exception\HandlerException;
 use Exception;
 
 class WorkerTest extends TestCase
@@ -44,13 +45,18 @@ class WorkerTest extends TestCase
 
     public function testGetHandlerNotCallable()
     {
+        $this->setExpectedExceptionRegExp(
+            HandlerException::class,
+            '/The handler for `test` is invalid./'
+        );
+
         $name = 'test';
         $routes = [
             $name => 'test',
         ];
 
         $method = static::getProtectedMethod($this->worker, 'getHandler');
-        $this->assertNull($method->invoke($this->worker, $name, $routes));
+        $method->invoke($this->worker, $name, $routes);
     }
 
     public function testGetHandlerNoHandler()
