@@ -3,7 +3,6 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use PHPUnit_Framework_TestCase as TestCase;
 
 class QueueTest extends TestCase
 {

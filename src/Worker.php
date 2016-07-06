@@ -23,26 +23,18 @@ class Worker
     private $handlers;
 
     /**
-     * @var array
-     */
-    private $options = [];
-
-    /**
      * @param DriverInterface $driver
      * @param Event $event
      * @param array $handlers
-     * @param array $options
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
-        array $handlers = [],
-        array $options = []
+        array $handlers = []
     ) {
         $this->driver = $driver;
         $this->event = $event;
         $this->handlers = $handlers;
-        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -52,8 +44,6 @@ class Worker
      */
     public function consume($queue)
     {
-        declare (ticks = 1);
-
         while ($this->tick($queue)) { /* NOOP */ }
     }
 
@@ -78,14 +68,14 @@ class Worker
             return true;
         }
 
-        if (!is_callable($handler)) {
-            return true;
-        }
-
         try {
-            call_user_func($handler, $message);
+            $result = call_user_func($handler, $message);
 
             $this->event->acknowledge($message);
+
+            if ($result === false) {
+                return false;
+            }
         } catch (Exception $exception) {
             $this->event->reject($message, $exception);
         }
@@ -99,7 +89,7 @@ class Worker
      * @param string $name
      * @param array $router
      *
-     * @return null|string
+     * @return null|callable
      */
     private function getHandler($name, array $router = [])
     {
@@ -107,6 +97,11 @@ class Worker
             return null;
         }
 
-        return $router[$name];
+        $handler = $router[$name];
+        if (!is_callable($handler)) {
+            return null;
+        }
+
+        return $handler;
     }
 }

@@ -4,7 +4,6 @@ namespace Equip\Queue;
 
 use Exception;
 use League\Event\EmitterInterface;
-use PHPUnit_Framework_TestCase as TestCase;
 
 class EventTest extends TestCase
 {

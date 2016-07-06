@@ -2,7 +2,7 @@
 
 namespace Equip\Queue\Driver;
 
-use PHPUnit_Framework_TestCase as TestCase;
+use Equip\Queue\TestCase;
 use Redis;
 
 class RedisDriverTest extends TestCase
