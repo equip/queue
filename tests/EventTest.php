@@ -27,7 +27,7 @@ class EventTest extends TestCase
     {
         $message = new Message(
             'queue',
-            'job-name',
+            'handler',
             ['foo' => 'bar']
         );
 
@@ -46,7 +46,7 @@ class EventTest extends TestCase
     {
         $message = new Message(
             'queue',
-            'job-name',
+            'handler',
             ['foo' => 'bar']
         );
 

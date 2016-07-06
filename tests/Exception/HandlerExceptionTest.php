@@ -11,9 +11,6 @@ class HandlerExceptionTest extends TestCase
         $exception = HandlerException::invalidHandler('test');
 
         $this->assertInstanceOf(HandlerException::class, $exception);
-        $this->assertRegExp(
-            '/The handler for `test` is invalid./',
-            $exception->getMessage()
-        );
+        $this->assertSame('The handler for `test` is invalid.', $exception->getMessage());
     }
 }
