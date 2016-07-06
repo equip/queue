@@ -3,7 +3,6 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Message\MessageInterface;
 use Exception;
 use League\Event\EmitterInterface;
 
@@ -87,9 +86,9 @@ class Worker
         try {
             call_user_func($handler, $message);
 
-            $this->emitter->emit('queue.acknowledge', $message);
+            $this->acknowledge($message);
         } catch (Exception $exception) {
-            $this->emitter->emit('queue.reject', $message, $exception);
+            $this->reject($message, $exception);
         }
 
         return true;
@@ -110,5 +109,38 @@ class Worker
         }
 
         return $router[$name];
+    }
+
+    /**
+     * Emits message acknowledgement events
+     *
+     * @param array $message
+     */
+    private function acknowledge(array $message)
+    {
+        $event = 'queue.acknowledge';
+        array_map(function ($name) use ($message) {
+            $this->emitter->emit($name, $message);
+        }, [
+            $event,
+            sprintf('%s.%s', $event, $message['name']),
+        ]);
+    }
+
+    /**
+     * Emits message rejection events
+     *
+     * @param array $message
+     * @param Exception $exception
+     */
+    private function reject(array $message, Exception $exception)
+    {
+        $event = 'queue.reject';
+        array_map(function ($name) use ($message, $exception) {
+            $this->emitter->emit($name, $message, $exception);
+        }, [
+            $event,
+            sprintf('%s.%s', $event, $message['name']),
+        ]);
     }
 }
