@@ -44,7 +44,7 @@ class RedisDriverTest extends TestCase
         $this->redis
             ->expects($this->once())
             ->method('blPop')
-            ->with([$queue], 5)
+            ->with($queue, 5)
             ->willReturn(['test', 'example']);
 
         $this->assertSame('example', $this->driver->pop($queue));
@@ -57,7 +57,7 @@ class RedisDriverTest extends TestCase
         $this->redis
             ->expects($this->once())
             ->method('blPop')
-            ->with([$queue], 5)
+            ->with($queue, 5)
             ->willReturn(null);
 
         $this->assertNull($this->driver->pop($queue));
