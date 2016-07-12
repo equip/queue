@@ -12,7 +12,7 @@ interface DriverInterface
      *
      * @return bool
      */
-    public function push($queue, $message);
+    public function enqueue($queue, $message);
 
     /**
      * Retrieve a message from the queue
@@ -21,5 +21,5 @@ interface DriverInterface
      *
      * @return string
      */
-    public function pop($queue);
+    public function dequeue($queue);
 }

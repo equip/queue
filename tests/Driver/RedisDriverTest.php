@@ -34,7 +34,7 @@ class RedisDriverTest extends TestCase
             ->with($queue, $message)
             ->willReturn(true);
 
-        $this->assertTrue($this->driver->push($queue, $message));
+        $this->assertTrue($this->driver->enqueue($queue, $message));
     }
 
     public function testPop()
@@ -47,7 +47,7 @@ class RedisDriverTest extends TestCase
             ->with($queue, 5)
             ->willReturn(['test', 'example']);
 
-        $this->assertSame('example', $this->driver->pop($queue));
+        $this->assertSame('example', $this->driver->dequeue($queue));
     }
 
     public function testPopEmpty()
@@ -60,6 +60,6 @@ class RedisDriverTest extends TestCase
             ->with($queue, 5)
             ->willReturn(null);
 
-        $this->assertNull($this->driver->pop($queue));
+        $this->assertNull($this->driver->dequeue($queue));
     }
 }

@@ -37,7 +37,7 @@ class Queue
      */
     public function add(Message $message)
     {
-        return $this->driver->push(
+        return $this->driver->enqueue(
             $message->queue(),
             $this->serializer->serialize($message)
         );
