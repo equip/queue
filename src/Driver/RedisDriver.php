@@ -22,7 +22,7 @@ class RedisDriver implements DriverInterface
     /**
      * @inheritdoc
      */
-    public function push($queue, $message)
+    public function enqueue($queue, $message)
     {
         return (bool) $this->redis->rPush($queue, $message);
     }
@@ -30,7 +30,7 @@ class RedisDriver implements DriverInterface
     /**
      * @inheritdoc
      */
-    public function pop($queue)
+    public function dequeue($queue)
     {
         list($_, $message) = $this->redis->blPop($queue, 5) ?: null;
 

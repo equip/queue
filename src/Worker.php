@@ -67,7 +67,7 @@ class Worker
      */
     private function tick($queue)
     {
-        $packet = $this->driver->pop($queue);
+        $packet = $this->driver->dequeue($queue);
         if (empty($packet)) {
              return true;
         }

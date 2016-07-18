@@ -40,7 +40,7 @@ class QueueTest extends TestCase
 
         $this->driver
             ->expects($this->once())
-            ->method('push')
+            ->method('enqueue')
             ->with('queue', $serialized_message)
             ->willReturn(true);
 

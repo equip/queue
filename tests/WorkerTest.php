@@ -76,7 +76,7 @@ class WorkerTest extends TestCase
         $queue = 'test-queue';
         $this->driver
             ->expects($this->once())
-            ->method('pop')
+            ->method('dequeue')
             ->with($queue)
             ->willReturn(null);
 
@@ -94,7 +94,7 @@ class WorkerTest extends TestCase
 
         $this->driver
             ->expects($this->once())
-            ->method('pop')
+            ->method('dequeue')
             ->with($message['queue'])
             ->willReturn(json_encode($message));
 
@@ -109,7 +109,7 @@ class WorkerTest extends TestCase
 
         $this->driver
             ->expects($this->once())
-            ->method('pop')
+            ->method('dequeue')
             ->with($message->queue())
             ->willReturn($this->serializer->serialize($message));
 
@@ -135,7 +135,7 @@ class WorkerTest extends TestCase
 
         $this->driver
             ->expects($this->once())
-            ->method('pop')
+            ->method('dequeue')
             ->with($message->queue())
             ->willReturn($this->serializer->serialize($message));
 
@@ -161,7 +161,7 @@ class WorkerTest extends TestCase
 
         $this->driver
             ->expects($this->once())
-            ->method('pop')
+            ->method('dequeue')
             ->with($message->queue())
             ->willReturn($this->serializer->serialize($message));
 
@@ -191,7 +191,7 @@ class WorkerTest extends TestCase
 
         $this->driver
             ->expects($this->once())
-            ->method('pop')
+            ->method('dequeue')
             ->with($message->queue())
             ->willReturn($this->serializer->serialize($message));
 
