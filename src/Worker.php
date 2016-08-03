@@ -80,9 +80,11 @@ class Worker
         }
 
         try {
+            $this->event->acknowledge($message);
+
             $result = call_user_func($handler, $message);
 
-            $this->event->acknowledge($message);
+            $this->event->finish($message);
 
             if ($result === false) {
                 return false;

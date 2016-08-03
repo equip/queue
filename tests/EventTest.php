@@ -35,11 +35,30 @@ class EventTest extends TestCase
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::QUEUE_ACKNOWLEDGE, $message],
-                [sprintf('%s.%s', Event::QUEUE_ACKNOWLEDGE, $message->handler()), $message]
+                [Event::MESSAGE_ACKNOWLEDGE, $message],
+                [sprintf('%s.%s', Event::MESSAGE_ACKNOWLEDGE, $message->handler()), $message]
             );
 
         $this->event->acknowledge($message);
+    }
+
+    public function testFinish()
+    {
+        $message = new Message(
+            'queue',
+            'handler',
+            ['foo' => 'bar']
+        );
+
+        $this->emitter
+            ->expects($this->exactly(2))
+            ->method('emit')
+            ->withConsecutive(
+                [Event::MESSAGE_FINISH, $message],
+                [sprintf('%s.%s', Event::MESSAGE_FINISH, $message->handler()), $message]
+            );
+
+        $this->event->finish($message);
     }
 
     public function testReject()
@@ -56,8 +75,8 @@ class EventTest extends TestCase
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::QUEUE_REJECT, $message, $exception],
-                [sprintf('%s.%s', Event::QUEUE_REJECT, $message->handler()), $message, $exception]
+                [Event::MESSAGE_REJECT, $message, $exception],
+                [sprintf('%s.%s', Event::MESSAGE_REJECT, $message->handler()), $message, $exception]
             );
 
         $this->event->reject($message, $exception);
