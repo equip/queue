@@ -7,8 +7,9 @@ use League\Event\EmitterInterface;
 
 class Event
 {
-    const QUEUE_ACKNOWLEDGE = 'queue.acknowledge';
-    const QUEUE_REJECT = 'queue.reject';
+    const MESSAGE_ACKNOWLEDGE = 'message.acknowledge';
+    const MESSAGE_FINISH = 'message.finish';
+    const MESSAGE_REJECT = 'message.reject';
 
     /**
      * @var EmitterInterface
@@ -33,8 +34,23 @@ class Event
         array_map(function ($name) use ($message) {
             $this->emitter->emit($name, $message);
         }, [
-            static::QUEUE_ACKNOWLEDGE,
-            sprintf('%s.%s', static::QUEUE_ACKNOWLEDGE, $message->handler())
+            static::MESSAGE_ACKNOWLEDGE,
+            sprintf('%s.%s', static::MESSAGE_ACKNOWLEDGE, $message->handler())
+        ]);
+    }
+
+    /**
+     * Emits message finished events
+     *
+     * @param Message $message
+     */
+    public function finish(Message $message)
+    {
+        array_map(function ($name) use ($message) {
+           $this->emitter->emit($name, $message) ;
+        }, [
+            static::MESSAGE_FINISH,
+            sprintf('%s.%s', static::MESSAGE_FINISH, $message->handler())
         ]);
     }
 
@@ -49,8 +65,8 @@ class Event
         array_map(function ($name) use ($message, $exception) {
             $this->emitter->emit($name, $message, $exception);
         }, [
-            static::QUEUE_REJECT,
-            sprintf('%s.%s', static::QUEUE_REJECT, $message->handler())
+            static::MESSAGE_REJECT,
+            sprintf('%s.%s', static::MESSAGE_REJECT, $message->handler())
         ]);
     }
 }

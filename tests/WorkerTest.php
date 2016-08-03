@@ -115,6 +115,16 @@ class WorkerTest extends TestCase
 
         $this->event
             ->expects($this->once())
+            ->method('acknowledge')
+            ->with($message);
+
+        $this->event
+            ->expects($this->never())
+            ->method('finish')
+            ->with($message);
+
+        $this->event
+            ->expects($this->once())
             ->method('reject')
             ->with($message, $exception);
 
@@ -170,6 +180,11 @@ class WorkerTest extends TestCase
             ->method('acknowledge')
             ->with($message);
 
+        $this->event
+            ->expects($this->once())
+            ->method('finish')
+            ->with($message);
+
         $worker = new Worker(
             $this->driver,
             $this->event,
@@ -198,6 +213,11 @@ class WorkerTest extends TestCase
         $this->event
             ->expects($this->once())
             ->method('acknowledge')
+            ->with($message);
+
+        $this->event
+            ->expects($this->once())
+            ->method('finish')
             ->with($message);
 
         $worker = new Worker(
