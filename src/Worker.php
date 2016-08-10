@@ -7,6 +7,7 @@ use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 class Worker
 {
@@ -21,6 +22,11 @@ class Worker
     private $event;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var MessageSerializerInterface
      */
     private $serializer;
@@ -33,17 +39,20 @@ class Worker
     /**
      * @param DriverInterface $driver
      * @param Event $event
+     * @param LoggerInterface $logger
      * @param MessageSerializerInterface $serializer
      * @param array $handlers
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
+        LoggerInterface $logger,
         MessageSerializerInterface $serializer = null,
         array $handlers = []
     ) {
         $this->driver = $driver;
         $this->event = $event;
+        $this->logger = $logger;
         $this->serializer = $serializer ?: new JsonSerializer;
         $this->handlers = $handlers;
     }
@@ -74,8 +83,10 @@ class Worker
 
         $message = $this->serializer->deserialize($packet);
 
-        $handler = $this->getHandler($message->handler(), $this->handlers);
+        $handle = $message->handler();
+        $handler = $this->getHandler($handle, $this->handlers);
         if (!$handler) {
+            $this->logger->warning(sprintf('Missing `%s` handler', $handle));
             return true;
         }
 
@@ -85,11 +96,14 @@ class Worker
             $result = call_user_func($handler, $message);
 
             $this->event->finish($message);
+            $this->logger->info(sprintf('`%s` job finished', $handle));
 
             if ($result === false) {
+                $this->logger->notice('shutting down');
                 return false;
             }
         } catch (Exception $exception) {
+            $this->logger->error($exception->getMessage());
             $this->event->reject($message, $exception);
         }
 

@@ -8,6 +8,7 @@ use Equip\Queue\Event;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Worker;
 use League\Event\Emitter;
+use Monolog\Logger;
 
 $redis = new Redis;
 $redis->connect('localhost');
@@ -15,6 +16,7 @@ $redis->connect('localhost');
 $worker = new Worker(
     new RedisDriver($redis),
     new Event(new Emitter),
+    new Logger('queue'),
     new JsonSerializer,
     ['handler' => new ExampleJob]
 );
