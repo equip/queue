@@ -134,6 +134,11 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('reject')
             ->with($message, $exception);
+        
+        $this->logger
+            ->expects($this->once())
+            ->method('error')
+            ->with($exception->getMessage());
 
         $worker = new Worker(
             $this->driver,
@@ -161,6 +166,11 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('acknowledge')
             ->with($message);
+        
+        $this->logger
+            ->expects($this->once())
+            ->method('notice')
+            ->with('shutting down by request of `foo`');
 
         $worker = new Worker(
             $this->driver,
@@ -193,6 +203,14 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('finish')
             ->with($message);
+        
+        $this->logger
+            ->expects($this->exactly(2))
+            ->method('info')
+            ->withConsecutive(
+                ['`foo` job started'],
+                ['`foo` job finished']
+            );
 
         $worker = new Worker(
             $this->driver,
