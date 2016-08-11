@@ -83,28 +83,25 @@ class Worker
 
         $message = $this->serializer->deserialize($packet);
 
-        $handle = $message->handler();
-        $handler = $this->getHandler($handle, $this->handlers);
+        $handler = $this->getHandler($message->handler(), $this->handlers);
         if (!$handler) {
-            $this->logger->warning(sprintf('Missing `%s` handler', $handle));
+            $this->logger->warning(sprintf('Missing `%s` handler', $message->handler()));
             return true;
         }
 
         try {
-            $this->event->acknowledge($message);
-
+            $this->jobStart($message);
+            
             $result = call_user_func($handler, $message);
-
-            $this->event->finish($message);
-            $this->logger->info(sprintf('`%s` job finished', $handle));
+            
+            $this->jobFinish($message);
 
             if ($result === false) {
-                $this->logger->notice('shutting down');
+                $this->jobShutdown($message);
                 return false;
             }
         } catch (Exception $exception) {
-            $this->logger->error($exception->getMessage());
-            $this->event->reject($message, $exception);
+            $this->jobException($message, $exception);
         }
 
         return true;
@@ -129,5 +126,49 @@ class Worker
         }
 
         return $callable;
+    }
+
+    /**
+     * Handles actions related to a job starting
+     * 
+     * @param Message $message
+     */
+    private function jobStart(Message $message)
+    {
+        $this->event->acknowledge($message);
+        $this->logger->info(sprintf('`%s` job started', $message->handler()));
+    }
+
+    /**
+     * Handles actions related to a job finishing
+     * 
+     * @param Message $message
+     */
+    private function jobFinish(Message $message)
+    {
+        $this->event->finish($message);
+        $this->logger->info(sprintf('`%s` job finished', $message->handler()));
+    }
+
+    /**
+     * Handles actions related to a job shutting down the consumer
+     * 
+     * @param Message $message
+     */
+    private function jobShutdown(Message $message)
+    {
+        $this->logger->notice(sprintf('shutting down by request of `%s`', $message->handler()));
+    }
+
+    /**
+     * Handles actions related to job exceptions
+     * 
+     * @param Message $message
+     * @param Exception $exception
+     */
+    private function jobException(Message $message, Exception $exception)
+    {
+        $this->logger->error($exception->getMessage());
+        $this->event->reject($message, $exception);
     }
 }
