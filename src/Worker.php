@@ -78,7 +78,7 @@ class Worker
     {
         $packet = $this->driver->dequeue($queue);
         if (empty($packet)) {
-             return true;
+            return true;
         }
 
         $message = $this->serializer->deserialize($packet);
@@ -91,9 +91,9 @@ class Worker
 
         try {
             $this->jobStart($message);
-            
+
             $result = call_user_func($handler, $message);
-            
+
             $this->jobFinish($message);
 
             if ($result === false) {
@@ -130,7 +130,7 @@ class Worker
 
     /**
      * Handles actions related to a job starting
-     * 
+     *
      * @param Message $message
      */
     private function jobStart(Message $message)
@@ -141,7 +141,7 @@ class Worker
 
     /**
      * Handles actions related to a job finishing
-     * 
+     *
      * @param Message $message
      */
     private function jobFinish(Message $message)
@@ -152,7 +152,7 @@ class Worker
 
     /**
      * Handles actions related to a job shutting down the consumer
-     * 
+     *
      * @param Message $message
      */
     private function jobShutdown(Message $message)
@@ -162,7 +162,7 @@ class Worker
 
     /**
      * Handles actions related to job exceptions
-     * 
+     *
      * @param Message $message
      * @param Exception $exception
      */
