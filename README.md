@@ -111,7 +111,7 @@ class ExampleHandler
 
 // Routes array that is passed into the consumer
 $routes = [
-    'example' => ExampleHandler::class,
+    'example' => new ExampleHandler,
     'foobar' => function (Equip\Queue\Message $message) {
         var_dump($message);
     },
