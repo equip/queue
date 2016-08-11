@@ -7,6 +7,7 @@ use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 class WorkerTest extends TestCase
 {
@@ -14,6 +15,11 @@ class WorkerTest extends TestCase
      * @var DriverInterface
      */
     private $driver;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var Event
@@ -33,9 +39,10 @@ class WorkerTest extends TestCase
     protected function setUp()
     {
         $this->driver = $this->createMock(DriverInterface::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = $this->createMock(Event::class);
         $this->serializer = new JsonSerializer;
-        $this->worker = new Worker($this->driver, $this->event);
+        $this->worker = new Worker($this->driver, $this->event, $this->logger);
     }
 
     public function testGetHandler()
@@ -127,10 +134,16 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('reject')
             ->with($message, $exception);
+        
+        $this->logger
+            ->expects($this->once())
+            ->method('error')
+            ->with($exception->getMessage());
 
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->logger,
             $this->serializer,
             ['foo' => function () use ($exception) { throw $exception; }]
         );
@@ -153,10 +166,16 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('acknowledge')
             ->with($message);
+        
+        $this->logger
+            ->expects($this->once())
+            ->method('notice')
+            ->with('shutting down by request of `foo`');
 
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->logger,
             $this->serializer,
             ['foo' => function () { return false; }]
         );
@@ -184,10 +203,19 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('finish')
             ->with($message);
+        
+        $this->logger
+            ->expects($this->exactly(2))
+            ->method('info')
+            ->withConsecutive(
+                ['`foo` job started'],
+                ['`foo` job finished']
+            );
 
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->logger,
             $this->serializer,
             [
                 'foo' => function ($data) use ($message) {
@@ -223,6 +251,7 @@ class WorkerTest extends TestCase
         $worker = new Worker(
             $this->driver,
             $this->event,
+            $this->logger,
             $this->serializer,
             ['foo' => function () { return false; }]
         );
