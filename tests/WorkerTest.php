@@ -34,7 +34,7 @@ class WorkerTest extends TestCase
     /**
      * @var HandlerFactoryInterface
      */
-    private $handler_factory;
+    private $handlers;
 
     /**
      * @var Worker
@@ -47,14 +47,14 @@ class WorkerTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = $this->createMock(Event::class);
         $this->serializer = new JsonSerializer;
-        $this->handler_factory = $this->createMock(HandlerFactoryInterface::class);
+        $this->handlers = $this->createMock(HandlerFactoryInterface::class);
 
         $this->worker = new Worker(
             $this->driver,
             $this->event,
             $this->logger,
             $this->serializer,
-            $this->handler_factory
+            $this->handlers
         );
     }
 
@@ -120,7 +120,7 @@ class WorkerTest extends TestCase
             ->method('error')
             ->with($exception->getMessage());
 
-        $this->handler_factory
+        $this->handlers
             ->expects($this->once())
             ->method('get')
             ->with($message->handler())
@@ -131,7 +131,7 @@ class WorkerTest extends TestCase
             $this->event,
             $this->logger,
             $this->serializer,
-            $this->handler_factory
+            $this->handlers
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
@@ -158,7 +158,7 @@ class WorkerTest extends TestCase
             ->method('notice')
             ->with('shutting down by request of `foo`');
 
-        $this->handler_factory
+        $this->handlers
             ->expects($this->once())
             ->method('get')
             ->with($message->handler())
@@ -171,7 +171,7 @@ class WorkerTest extends TestCase
             $this->event,
             $this->logger,
             $this->serializer,
-            $this->handler_factory
+            $this->handlers
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
@@ -206,7 +206,7 @@ class WorkerTest extends TestCase
                 ['`foo` job finished']
             );
 
-        $this->handler_factory
+        $this->handlers
             ->expects($this->once())
             ->method('get')
             ->with($message->handler())
@@ -219,7 +219,7 @@ class WorkerTest extends TestCase
             $this->event,
             $this->logger,
             $this->serializer,
-            $this->handler_factory
+            $this->handlers
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
@@ -246,7 +246,7 @@ class WorkerTest extends TestCase
             ->method('finish')
             ->with($message);
 
-        $this->handler_factory
+        $this->handlers
             ->expects($this->once())
             ->method('get')
             ->willReturn(function () {
@@ -258,7 +258,7 @@ class WorkerTest extends TestCase
             $this->event,
             $this->logger,
             $this->serializer,
-            $this->handler_factory
+            $this->handlers
         );
 
         $worker->consume($message->queue());
