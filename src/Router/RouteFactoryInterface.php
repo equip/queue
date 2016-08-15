@@ -14,7 +14,7 @@ interface RouteFactoryInterface
      *
      * @return callable
      *
-     * @throws RouterException If router is not found.
+     * @throws RouterException If route is not found.
      * @throws HandlerException If handler is not acceptable.
      */
     public function get($handler);
