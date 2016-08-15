@@ -3,7 +3,6 @@
 namespace Equip\Queue\Handler;
 
 use Equip\Queue\Exception\HandlerException;
-use Equip\Queue\Exception\RouterException;
 
 interface HandlerFactoryInterface
 {
@@ -14,7 +13,6 @@ interface HandlerFactoryInterface
      *
      * @return callable
      *
-     * @throws RouterException If route is not found.
      * @throws HandlerException If handler is not acceptable.
      */
     public function get($handler);

@@ -3,21 +3,20 @@
 namespace Equip\Queue\Handler;
 
 use Equip\Queue\Exception\HandlerException;
-use Equip\Queue\Exception\RouterException;
 
 class SimpleHandlerFactory implements HandlerFactoryInterface
 {
     /**
      * @var array
      */
-    private $routes;
+    private $handlers;
 
     /**
-     * @param array $routes
+     * @param array $handlers
      */
-    public function __construct(array $routes = [])
+    public function __construct(array $handlers = [])
     {
-        $this->routes = $routes;
+        $this->handlers = $handlers;
     }
 
     /**
@@ -25,7 +24,7 @@ class SimpleHandlerFactory implements HandlerFactoryInterface
      */
     public function get($handler)
     {
-        $route = $this->getRoute($handler);
+        $route = $this->getHandler($handler);
         if (!$route) {
             throw HandlerException::notFound($handler);
         }
@@ -42,14 +41,14 @@ class SimpleHandlerFactory implements HandlerFactoryInterface
     }
 
     /**
-     * Get the routes handler
+     * Get the handler
      *
      * @param string $handler
      *
      * @return mixed|null
      */
-    private function getRoute($handler)
+    private function getHandler($handler)
     {
-        return isset($this->routes[$handler]) ? $this->routes[$handler] : null;
+        return isset($this->handlers[$handler]) ? $this->handlers[$handler] : null;
     }
 }

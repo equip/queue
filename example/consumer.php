@@ -5,7 +5,7 @@ require 'Job.php';
 
 use Equip\Queue\Driver\RedisDriver;
 use Equip\Queue\Event;
-use Equip\Queue\Router\SimpleHandlerFactory;
+use Equip\Queue\Handler\SimpleHandlerFactory;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Worker;
 use League\Event\Emitter;
