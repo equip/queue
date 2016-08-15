@@ -22,33 +22,33 @@ class SimpleHandlerFactory implements HandlerFactoryInterface
     /**
      * @inheritdoc
      */
-    public function get($handler)
+    public function get($name)
     {
-        $route = $this->getHandler($handler);
-        if (!$route) {
-            throw HandlerException::notFound($handler);
+        $handler = $this->getHandler($name);
+        if (!$handler) {
+            throw HandlerException::notFound($name);
         }
 
-        if (is_string($route) && class_exists($route)) {
-            $route = new $route;
+        if (is_string($handler) && class_exists($handler)) {
+            $handler = new $handler;
         }
 
-        if (is_callable($route)) {
-            return $route;
+        if (is_callable($handler)) {
+            return $handler;
         }
 
-        throw HandlerException::invalidHandler($handler);
+        throw HandlerException::invalidHandler($name);
     }
 
     /**
      * Get the handler
      *
-     * @param string $handler
+     * @param string $name
      *
      * @return mixed|null
      */
-    private function getHandler($handler)
+    private function getHandler($name)
     {
-        return isset($this->handlers[$handler]) ? $this->handlers[$handler] : null;
+        return isset($this->handlers[$name]) ? $this->handlers[$name] : null;
     }
 }

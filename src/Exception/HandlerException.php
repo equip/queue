@@ -19,14 +19,14 @@ class HandlerException extends Exception
     }
 
     /**
-     * @param string $handler
+     * @param string $name
      *
      * @return static
      */
-    public static function notFound($handler)
+    public static function notFound($name)
     {
         return new static(
-            sprintf('`%s` handler not found.', $handler)
+            sprintf('`%s` handler not found.', $name)
         );
     }
 }
