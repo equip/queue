@@ -1,10 +1,11 @@
 <?php
 
+namespace Equip\Queue\Router;
+
 use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Exception\RouterException;
-use Equip\Queue\RouterInterface;
 
-class Router implements RouterInterface
+class SimpleRouter implements RouterInterface
 {
     /**
      * @var array
@@ -29,17 +30,24 @@ class Router implements RouterInterface
             throw RouterException::routeNotFound($handler);
         }
 
-        if (is_callable($route)) {
-            return $route;
+        if (is_string($route) && class_exists($route)) {
+            $route = new $route;
         }
 
-        if (class_exists($route)) {
-            return new $route;
+        if (is_callable($route)) {
+            return $route;
         }
 
         throw HandlerException::invalidHandler($handler);
     }
 
+    /**
+     * Get the routes handler
+     *
+     * @param string $handler
+     *
+     * @return mixed|null
+     */
     private function getRoute($handler)
     {
         return isset($this->routes[$handler]) ? $this->routes[$handler] : null;

@@ -3,6 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Router\RouterInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -105,7 +106,7 @@ class Worker
         $this->jobStart($message);
 
         $result = call_user_func(
-            $this->router->get($message),
+            $this->router->get($message->handler()),
             $message
         );
 

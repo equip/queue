@@ -1,6 +1,6 @@
 <?php
 
-namespace Equip\Queue;
+namespace Equip\Queue\Router;
 
 use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Exception\RouterException;

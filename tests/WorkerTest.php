@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Exception\HandlerException;
+use Equip\Queue\Router\RouterInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -123,7 +123,7 @@ class WorkerTest extends TestCase
         $this->router
             ->expects($this->once())
             ->method('get')
-            ->with($message)
+            ->with($message->handler())
             ->will($this->throwException($exception));
 
         $worker = new Worker(
@@ -161,7 +161,7 @@ class WorkerTest extends TestCase
         $this->router
             ->expects($this->once())
             ->method('get')
-            ->with($message)
+            ->with($message->handler())
             ->willReturn(function () {
                 return false;
             });
@@ -209,7 +209,7 @@ class WorkerTest extends TestCase
         $this->router
             ->expects($this->once())
             ->method('get')
-            ->with($message)
+            ->with($message->handler())
             ->willReturn(function ($data) use ($message) {
                 $this->assertSame($message->handler(), $data->handler());
             });
