@@ -5,7 +5,7 @@ require 'Job.php';
 
 use Equip\Queue\Driver\RedisDriver;
 use Equip\Queue\Event;
-use Equip\Queue\Router\SimpleRouter;
+use Equip\Queue\Router\SimpleRouteFactory;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Worker;
 use League\Event\Emitter;
@@ -19,7 +19,7 @@ $worker = new Worker(
     new Event(new Emitter),
     new Logger('queue'),
     new JsonSerializer,
-    new SimpleRouter([
+    new SimpleRouteFactory([
         'handler' => ExampleJob::class,
     ])
 );

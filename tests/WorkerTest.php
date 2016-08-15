@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Router\RouterInterface;
+use Equip\Queue\Router\RouteFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -32,7 +32,7 @@ class WorkerTest extends TestCase
     private $serializer;
 
     /**
-     * @var RouterInterface
+     * @var RouteFactoryInterface
      */
     private $router;
 
@@ -47,7 +47,7 @@ class WorkerTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = $this->createMock(Event::class);
         $this->serializer = new JsonSerializer;
-        $this->router = $this->createMock(RouterInterface::class);
+        $this->router = $this->createMock(RouteFactoryInterface::class);
 
         $this->worker = new Worker(
             $this->driver,

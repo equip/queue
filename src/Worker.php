@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Router\RouterInterface;
+use Equip\Queue\Router\RouteFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -32,7 +32,7 @@ class Worker
     private $serializer;
 
     /**
-     * @var RouterInterface
+     * @var RouteFactoryInterface
      */
     private $router;
 
@@ -41,14 +41,14 @@ class Worker
      * @param Event $event
      * @param LoggerInterface $logger
      * @param MessageSerializerInterface $serializer
-     * @param RouterInterface $router
+     * @param RouteFactoryInterface $router
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
         LoggerInterface $logger,
         MessageSerializerInterface $serializer = null,
-        RouterInterface $router
+        RouteFactoryInterface $router
     ) {
         $this->driver = $driver;
         $this->event = $event;

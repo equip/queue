@@ -7,7 +7,7 @@ use Equip\Queue\Exception\RouterException;
 use Equip\Queue\Fake\Handler;
 use Equip\Queue\TestCase;
 
-class SimpleRouterTest extends TestCase
+class SimpleRouteFactoryTest extends TestCase
 {
     public function testNotFound()
     {
@@ -16,13 +16,13 @@ class SimpleRouterTest extends TestCase
             '/Route not found for `test`./'
         );
 
-        $router = new SimpleRouter;
+        $router = new SimpleRouteFactory;
         $router->get('test');
     }
 
     public function testClassHandler()
     {
-        $router = new SimpleRouter([
+        $router = new SimpleRouteFactory([
             'foobar' => Handler::class,
         ]);
 
@@ -31,7 +31,7 @@ class SimpleRouterTest extends TestCase
 
     public function testClosureHandler()
     {
-        $router = new SimpleRouter([
+        $router = new SimpleRouteFactory([
             'foobar' => function () {
                 return true;
             },
@@ -49,7 +49,7 @@ class SimpleRouterTest extends TestCase
             '/The handler for `foobar` is invalid./'
         );
 
-        $router = new SimpleRouter([
+        $router = new SimpleRouteFactory([
             'foobar' => 'foobar-test',
         ]);
         $router->get('foobar');

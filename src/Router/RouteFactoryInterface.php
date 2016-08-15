@@ -5,7 +5,7 @@ namespace Equip\Queue\Router;
 use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Exception\RouterException;
 
-interface RouterInterface
+interface RouteFactoryInterface
 {
     /**
      * Retrieve callable for message
