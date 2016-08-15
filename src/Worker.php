@@ -34,27 +34,27 @@ class Worker
     /**
      * @var HandlerFactoryInterface
      */
-    private $handler_factory;
+    private $handlers;
 
     /**
      * @param DriverInterface $driver
      * @param Event $event
      * @param LoggerInterface $logger
      * @param MessageSerializerInterface $serializer
-     * @param HandlerFactoryInterface $handler_factory
+     * @param HandlerFactoryInterface $handlers
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
         LoggerInterface $logger,
         MessageSerializerInterface $serializer = null,
-        HandlerFactoryInterface $handler_factory
+        HandlerFactoryInterface $handlers
     ) {
         $this->driver = $driver;
         $this->event = $event;
         $this->logger = $logger;
         $this->serializer = $serializer ?: new JsonSerializer;
-        $this->handler_factory = $handler_factory;
+        $this->handlers = $handlers;
     }
 
     /**
@@ -106,7 +106,7 @@ class Worker
         $this->jobStart($message);
 
         $result = call_user_func(
-            $this->handler_factory->get($message->handler()),
+            $this->handlers->get($message->handler()),
             $message
         );
 
