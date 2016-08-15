@@ -1,43 +1,42 @@
 <?php
 
-namespace Equip\Queue\Router;
+namespace Equip\Queue\Handler;
 
 use Equip\Queue\Exception\HandlerException;
-use Equip\Queue\Exception\RouterException;
 use Equip\Queue\Fake\Handler;
 use Equip\Queue\TestCase;
 
-class SimpleRouteFactoryTest extends TestCase
+class SimpleHandlerFactoryTest extends TestCase
 {
     public function testNotFound()
     {
         $this->setExpectedExceptionRegExp(
-            RouterException::class,
-            '/Route not found for `test`./'
+            HandlerException::class,
+            '/`test` handler not found./'
         );
 
-        $router = new SimpleRouteFactory;
-        $router->get('test');
+        $factory = new SimpleHandlerFactory;
+        $factory->get('test');
     }
 
     public function testClassHandler()
     {
-        $router = new SimpleRouteFactory([
+        $factory = new SimpleHandlerFactory([
             'foobar' => Handler::class,
         ]);
 
-        $this->assertInstanceOf(Handler::class, $router->get('foobar'));
+        $this->assertInstanceOf(Handler::class, $factory->get('foobar'));
     }
 
     public function testClosureHandler()
     {
-        $router = new SimpleRouteFactory([
+        $factory = new SimpleHandlerFactory([
             'foobar' => function () {
                 return true;
             },
         ]);
 
-        $callable = $router->get('foobar');
+        $callable = $factory->get('foobar');
         $this->assertTrue(is_callable($callable));
         $this->assertTrue($callable());
     }
@@ -49,9 +48,9 @@ class SimpleRouteFactoryTest extends TestCase
             '/The handler for `foobar` is invalid./'
         );
 
-        $router = new SimpleRouteFactory([
+        $factory = new SimpleHandlerFactory([
             'foobar' => 'foobar-test',
         ]);
-        $router->get('foobar');
+        $factory->get('foobar');
     }
 }

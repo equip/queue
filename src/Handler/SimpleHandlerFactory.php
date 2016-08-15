@@ -1,11 +1,11 @@
 <?php
 
-namespace Equip\Queue\Router;
+namespace Equip\Queue\Handler;
 
 use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Exception\RouterException;
 
-class SimpleRouteFactory implements RouteFactoryInterface
+class SimpleHandlerFactory implements HandlerFactoryInterface
 {
     /**
      * @var array
@@ -27,7 +27,7 @@ class SimpleRouteFactory implements RouteFactoryInterface
     {
         $route = $this->getRoute($handler);
         if (!$route) {
-            throw RouterException::routeNotFound($handler);
+            throw HandlerException::notFound($handler);
         }
 
         if (is_string($route) && class_exists($route)) {

@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Router\RouteFactoryInterface;
+use Equip\Queue\Handler\HandlerFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -32,29 +32,29 @@ class Worker
     private $serializer;
 
     /**
-     * @var RouteFactoryInterface
+     * @var HandlerFactoryInterface
      */
-    private $router;
+    private $handler_factory;
 
     /**
      * @param DriverInterface $driver
      * @param Event $event
      * @param LoggerInterface $logger
      * @param MessageSerializerInterface $serializer
-     * @param RouteFactoryInterface $router
+     * @param HandlerFactoryInterface $handler_factory
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
         LoggerInterface $logger,
         MessageSerializerInterface $serializer = null,
-        RouteFactoryInterface $router
+        HandlerFactoryInterface $handler_factory
     ) {
         $this->driver = $driver;
         $this->event = $event;
         $this->logger = $logger;
         $this->serializer = $serializer ?: new JsonSerializer;
-        $this->router = $router;
+        $this->handler_factory = $handler_factory;
     }
 
     /**
@@ -106,7 +106,7 @@ class Worker
         $this->jobStart($message);
 
         $result = call_user_func(
-            $this->router->get($message->handler()),
+            $this->handler_factory->get($message->handler()),
             $message
         );
 

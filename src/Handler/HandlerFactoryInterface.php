@@ -1,11 +1,11 @@
 <?php
 
-namespace Equip\Queue\Router;
+namespace Equip\Queue\Handler;
 
 use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Exception\RouterException;
 
-interface RouteFactoryInterface
+interface HandlerFactoryInterface
 {
     /**
      * Retrieve callable for message
