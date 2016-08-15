@@ -1,10 +1,11 @@
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
-require 'ExampleJob.php';
+require 'Job.php';
 
 use Equip\Queue\Driver\RedisDriver;
 use Equip\Queue\Event;
+use Equip\Queue\Handler\SimpleHandlerFactory;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Worker;
 use League\Event\Emitter;
@@ -18,6 +19,8 @@ $worker = new Worker(
     new Event(new Emitter),
     new Logger('queue'),
     new JsonSerializer,
-    ['handler' => new ExampleJob]
+    new SimpleHandlerFactory([
+        'handler' => ExampleJob::class,
+    ])
 );
 $worker->consume('queue');

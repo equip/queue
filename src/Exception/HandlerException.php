@@ -17,4 +17,16 @@ class HandlerException extends Exception
             sprintf('The handler for `%s` is invalid.', $handler)
         );
     }
+
+    /**
+     * @param string $name
+     *
+     * @return static
+     */
+    public static function notFound($name)
+    {
+        return new static(
+            sprintf('`%s` handler not found.', $name)
+        );
+    }
 }

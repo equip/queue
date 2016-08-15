@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Exception\HandlerException;
+use Equip\Queue\Handler\HandlerFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -32,6 +32,11 @@ class WorkerTest extends TestCase
     private $serializer;
 
     /**
+     * @var HandlerFactoryInterface
+     */
+    private $handlers;
+
+    /**
      * @var Worker
      */
     private $worker;
@@ -42,40 +47,15 @@ class WorkerTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = $this->createMock(Event::class);
         $this->serializer = new JsonSerializer;
-        $this->worker = new Worker($this->driver, $this->event, $this->logger);
-    }
+        $this->handlers = $this->createMock(HandlerFactoryInterface::class);
 
-    public function testGetHandler()
-    {
-        $name = 'test';
-        $routes = [
-            $name => function () {},
-        ];
-
-        $method = static::getProtectedMethod($this->worker, 'getHandler');
-        $result = $method->invoke($this->worker, $name, $routes);
-
-        $this->assertSame($routes[$name], $result);
-    }
-
-    public function testGetHandlerNotCallable()
-    {
-        $this->expectException(HandlerException::class);
-        $this->expectExceptionMessage('The handler for `test` is invalid.');
-
-        $name = 'test';
-        $routes = [
-            $name => 'test',
-        ];
-
-        $method = static::getProtectedMethod($this->worker, 'getHandler');
-        $method->invoke($this->worker, $name, $routes);
-    }
-
-    public function testGetHandlerNoHandler()
-    {
-        $method = static::getProtectedMethod($this->worker, 'getHandler');
-        $this->assertNull($method->invoke($this->worker, 'test', []));
+        $this->worker = new Worker(
+            $this->driver,
+            $this->event,
+            $this->logger,
+            $this->serializer,
+            $this->handlers
+        );
     }
 
     public function testTickPacketNull()
@@ -134,18 +114,24 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('reject')
             ->with($message, $exception);
-        
+
         $this->logger
             ->expects($this->once())
             ->method('error')
             ->with($exception->getMessage());
+
+        $this->handlers
+            ->expects($this->once())
+            ->method('get')
+            ->with($message->handler())
+            ->will($this->throwException($exception));
 
         $worker = new Worker(
             $this->driver,
             $this->event,
             $this->logger,
             $this->serializer,
-            ['foo' => function () use ($exception) { throw $exception; }]
+            $this->handlers
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
@@ -166,18 +152,26 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('acknowledge')
             ->with($message);
-        
+
         $this->logger
             ->expects($this->once())
             ->method('notice')
             ->with('shutting down by request of `foo`');
+
+        $this->handlers
+            ->expects($this->once())
+            ->method('get')
+            ->with($message->handler())
+            ->willReturn(function () {
+                return false;
+            });
 
         $worker = new Worker(
             $this->driver,
             $this->event,
             $this->logger,
             $this->serializer,
-            ['foo' => function () { return false; }]
+            $this->handlers
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
@@ -203,7 +197,7 @@ class WorkerTest extends TestCase
             ->expects($this->once())
             ->method('finish')
             ->with($message);
-        
+
         $this->logger
             ->expects($this->exactly(2))
             ->method('info')
@@ -212,16 +206,20 @@ class WorkerTest extends TestCase
                 ['`foo` job finished']
             );
 
+        $this->handlers
+            ->expects($this->once())
+            ->method('get')
+            ->with($message->handler())
+            ->willReturn(function ($data) use ($message) {
+                $this->assertSame($message->handler(), $data->handler());
+            });
+
         $worker = new Worker(
             $this->driver,
             $this->event,
             $this->logger,
             $this->serializer,
-            [
-                'foo' => function ($data) use ($message) {
-                    $this->assertSame($message->handler(), $data->handler());
-                }
-            ]
+            $this->handlers
         );
 
         $method = static::getProtectedMethod($worker, 'tick');
@@ -248,12 +246,19 @@ class WorkerTest extends TestCase
             ->method('finish')
             ->with($message);
 
+        $this->handlers
+            ->expects($this->once())
+            ->method('get')
+            ->willReturn(function () {
+                return false;
+            });
+
         $worker = new Worker(
             $this->driver,
             $this->event,
             $this->logger,
             $this->serializer,
-            ['foo' => function () { return false; }]
+            $this->handlers
         );
 
         $worker->consume($message->queue());
