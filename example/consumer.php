@@ -1,7 +1,8 @@
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
-require 'ExampleJob.php';
+require 'Router.php';
+require 'Job.php';
 
 use Equip\Queue\Driver\RedisDriver;
 use Equip\Queue\Event;
@@ -18,6 +19,8 @@ $worker = new Worker(
     new Event(new Emitter),
     new Logger('queue'),
     new JsonSerializer,
-    ['handler' => new ExampleJob]
+    new Router([
+        'handler' => ExampleJob::class,
+    ])
 );
 $worker->consume('queue');

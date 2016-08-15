@@ -3,7 +3,6 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Exception\HandlerException;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -32,29 +31,29 @@ class Worker
     private $serializer;
 
     /**
-     * @var array
+     * @var RouterInterface
      */
-    private $handlers;
+    private $router;
 
     /**
      * @param DriverInterface $driver
      * @param Event $event
      * @param LoggerInterface $logger
      * @param MessageSerializerInterface $serializer
-     * @param array $handlers
+     * @param RouterInterface $router
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
         LoggerInterface $logger,
         MessageSerializerInterface $serializer = null,
-        array $handlers = []
+        RouterInterface $router
     ) {
         $this->driver = $driver;
         $this->event = $event;
         $this->logger = $logger;
         $this->serializer = $serializer ?: new JsonSerializer;
-        $this->handlers = $handlers;
+        $this->router = $router;
     }
 
     /**
@@ -74,7 +73,7 @@ class Worker
      *
      * @return bool
      */
-    private function tick($queue)
+    protected function tick($queue)
     {
         $packet = $this->driver->dequeue($queue);
         if (empty($packet)) {
@@ -82,21 +81,8 @@ class Worker
         }
 
         $message = $this->serializer->deserialize($packet);
-
-        $handler = $this->getHandler($message->handler(), $this->handlers);
-        if (!$handler) {
-            $this->logger->warning(sprintf('Missing `%s` handler', $message->handler()));
-            return true;
-        }
-
         try {
-            $this->jobStart($message);
-
-            $result = call_user_func($handler, $message);
-
-            $this->jobFinish($message);
-
-            if ($result === false) {
+            if ($this->invoke($message) === false) {
                 $this->jobShutdown($message);
                 return false;
             }
@@ -108,24 +94,24 @@ class Worker
     }
 
     /**
-     * @param string $handler
-     * @param array $router
+     * Invoke the messages handler
      *
-     * @return null|callable
-     * @throws HandlerException If handler is not callable
+     * @param Message $message
+     *
+     * @return null|bool
      */
-    private function getHandler($handler, array $router = [])
+    private function invoke(Message $message)
     {
-        if (!isset($router[$handler])) {
-            return null;
-        }
+        $this->jobStart($message);
 
-        $callable = $router[$handler];
-        if (!is_callable($callable)) {
-            throw HandlerException::invalidHandler($handler);
-        }
+        $result = call_user_func(
+            $this->router->get($message),
+            $message
+        );
 
-        return $callable;
+        $this->jobFinish($message);
+
+        return $result;
     }
 
     /**
