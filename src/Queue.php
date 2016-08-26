@@ -2,9 +2,8 @@
 
 namespace Equip\Queue;
 
+use Equip\Command\OptionsInterface;
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Serializer\JsonSerializer;
-use Equip\Queue\Serializer\MessageSerializerInterface;
 
 class Queue
 {
@@ -14,32 +13,24 @@ class Queue
     private $driver;
 
     /**
-     * @var MessageSerializerInterface
-     */
-    private $serializer;
-
-    /**
      * @param DriverInterface $driver
-     * @param MessageSerializerInterface $serializer
      */
-    public function __construct(DriverInterface $driver, MessageSerializerInterface $serializer = null)
+    public function __construct(DriverInterface $driver)
     {
         $this->driver = $driver;
-        $this->serializer = $serializer ?: new JsonSerializer;
     }
 
     /**
-     * Adds a message to the queue
+     * Add a message to the queue
      *
-     * @param Message $message
+     * @param string $queue
+     * @param string $command
+     * @param mixed $options
      *
      * @return bool
      */
-    public function add(Message $message)
+    public function add($queue, $command, OptionsInterface $options)
     {
-        return $this->driver->enqueue(
-            $message->queue(),
-            $this->serializer->serialize($message)
-        );
+        return $this->driver->enqueue($queue, compact('command', 'options'));
     }
 }

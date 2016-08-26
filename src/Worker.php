@@ -2,12 +2,10 @@
 
 namespace Equip\Queue;
 
+use Equip\Command\OptionsInterface;
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Handler\HandlerFactoryInterface;
-use Equip\Queue\Serializer\JsonSerializer;
-use Equip\Queue\Serializer\MessageSerializerInterface;
+use Equip\Queue\Command\CommandFactoryInterface;
 use Exception;
-use Psr\Log\LoggerInterface;
 
 class Worker
 {
@@ -22,39 +20,23 @@ class Worker
     private $event;
 
     /**
-     * @var LoggerInterface
+     * @var CommandFactoryInterface
      */
-    private $logger;
-
-    /**
-     * @var MessageSerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var HandlerFactoryInterface
-     */
-    private $handlers;
+    private $commands;
 
     /**
      * @param DriverInterface $driver
      * @param Event $event
-     * @param LoggerInterface $logger
-     * @param MessageSerializerInterface $serializer
-     * @param HandlerFactoryInterface $handlers
+     * @param CommandFactoryInterface $commands
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
-        LoggerInterface $logger,
-        MessageSerializerInterface $serializer = null,
-        HandlerFactoryInterface $handlers
+        CommandFactoryInterface $commands
     ) {
         $this->driver = $driver;
         $this->event = $event;
-        $this->logger = $logger;
-        $this->serializer = $serializer ?: new JsonSerializer;
-        $this->handlers = $handlers;
+        $this->commands = $commands;
     }
 
     /**
@@ -81,81 +63,39 @@ class Worker
             return true;
         }
 
-        $message = $this->serializer->deserialize($packet);
         try {
-            if ($this->invoke($message) === false) {
-                $this->jobShutdown($message);
+            list($command, $options) = array_values(unserialize($packet));
+
+            if ($this->invoke($command, $options) === false) {
+                $this->event->shutdown($command);
                 return false;
             }
         } catch (Exception $exception) {
-            $this->jobException($message, $exception);
+            $this->event->reject($command, $options, $exception);
         }
 
         return true;
     }
 
     /**
-     * Invoke the messages handler
+     * Invoke the command with the options
      *
-     * @param Message $message
+     * @param string $command
+     * @param OptionsInterface $options
      *
-     * @return null|bool
+     * @return mixed
      */
-    private function invoke(Message $message)
+    private function invoke($command, OptionsInterface $options)
     {
-        $this->jobStart($message);
+        $this->event->acknowledge($command, $options);
 
-        $result = call_user_func(
-            $this->handlers->get($message->handler()),
-            $message
-        );
+        $result = $this->commands
+            ->make($command)
+            ->withOptions($options)
+            ->execute();
 
-        $this->jobFinish($message);
+        $this->event->finish($command, $options);
 
         return $result;
-    }
-
-    /**
-     * Handles actions related to a job starting
-     *
-     * @param Message $message
-     */
-    private function jobStart(Message $message)
-    {
-        $this->event->acknowledge($message);
-        $this->logger->info(sprintf('`%s` job started', $message->handler()));
-    }
-
-    /**
-     * Handles actions related to a job finishing
-     *
-     * @param Message $message
-     */
-    private function jobFinish(Message $message)
-    {
-        $this->event->finish($message);
-        $this->logger->info(sprintf('`%s` job finished', $message->handler()));
-    }
-
-    /**
-     * Handles actions related to a job shutting down the consumer
-     *
-     * @param Message $message
-     */
-    private function jobShutdown(Message $message)
-    {
-        $this->logger->notice(sprintf('shutting down by request of `%s`', $message->handler()));
-    }
-
-    /**
-     * Handles actions related to job exceptions
-     *
-     * @param Message $message
-     * @param Exception $exception
-     */
-    private function jobException(Message $message, Exception $exception)
-    {
-        $this->logger->error($exception->getMessage());
-        $this->event->reject($message, $exception);
     }
 }
