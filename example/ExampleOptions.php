@@ -2,10 +2,15 @@
 
 namespace Example;
 
-use Equip\Queue\AbstractOptions;
+use Equip\Command\OptionsInterface;
+use Equip\Command\OptionsSerializerTrait;
 
-class ExampleOptions extends AbstractOptions
+class ExampleOptions implements OptionsInterface
 {
-    protected $command = ExampleCommand::class;
-    protected $queue = 'queue';
+    use OptionsSerializerTrait;
+
+    public function test()
+    {
+        return 'example';
+    }
 }

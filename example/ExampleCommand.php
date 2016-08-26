@@ -9,6 +9,11 @@ class ExampleCommand implements CommandInterface
 {
     use CommandImmutableOptionsTrait;
 
+    /**
+     * @var ExampleOptions
+     */
+    private $options;
+
     public function withOptions(ExampleOptions $options)
     {
         return $this->copyWithOptions($options);
@@ -16,6 +21,6 @@ class ExampleCommand implements CommandInterface
 
     public function execute()
     {
-        var_dump($this->options);
+        var_dump($this->options, $this->options->test());
     }
 }

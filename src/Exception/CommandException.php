@@ -6,6 +6,8 @@ use Exception;
 
 class CommandException extends Exception
 {
+    const INVALID = 1000;
+    const NOT_FOUND = 2000;
     /**
      * @param string $name
      *
@@ -14,7 +16,8 @@ class CommandException extends Exception
     public static function invalidCommand($name)
     {
         return new static(
-            sprintf('The command for `%s` is invalid.', $name)
+            sprintf('The command for `%s` is invalid.', $name),
+            static::INVALID
         );
     }
 
@@ -26,7 +29,8 @@ class CommandException extends Exception
     public static function notFound($name)
     {
         return new static(
-            sprintf('`%s` command not found.', $name)
+            sprintf('`%s` command not found.', $name),
+            static::NOT_FOUND
         );
     }
 }

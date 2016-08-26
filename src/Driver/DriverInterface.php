@@ -9,11 +9,12 @@ interface DriverInterface
     /**
      * Add a message to the queue
      *
-     * @param AbstractOptions $message
+     * @param string $queue
+     * @param array $message
      *
      * @return bool
      */
-    public function enqueue(AbstractOptions $message);
+    public function enqueue($queue, array $message);
 
     /**
      * Retrieve a message from the queue

@@ -2,10 +2,10 @@
 
 namespace Equip\Queue;
 
+use Equip\Command\OptionsInterface;
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Command\CommandFactoryInterface;
 use Exception;
-use Psr\Log\LoggerInterface;
 
 class Worker
 {
@@ -20,11 +20,6 @@ class Worker
     private $event;
 
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var CommandFactoryInterface
      */
     private $commands;
@@ -32,18 +27,15 @@ class Worker
     /**
      * @param DriverInterface $driver
      * @param Event $event
-     * @param LoggerInterface $logger
      * @param CommandFactoryInterface $commands
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
-        LoggerInterface $logger,
         CommandFactoryInterface $commands
     ) {
         $this->driver = $driver;
         $this->event = $event;
-        $this->logger = $logger;
         $this->commands = $commands;
     }
 
@@ -72,81 +64,38 @@ class Worker
         }
 
         try {
-            $options = unserialize($packet);
+            list($command, $options) = array_values(unserialize($packet));
 
-            if ($this->invoke($options) === false) {
-                $this->jobShutdown($options);
+            if ($this->invoke($command, $options) === false) {
+                $this->event->shutdown($command);
                 return false;
             }
         } catch (Exception $exception) {
-            $this->jobException($options, $exception);
+            $this->event->reject($command, $options, $exception);
         }
 
         return true;
     }
 
     /**
-     * Invoke the options command
+     * Invoke the command with the options
      *
-     * @param AbstractOptions $options
+     * @param string $command
+     * @param OptionsInterface $options
      *
-     * @return null|bool
+     * @return mixed
      */
-    private function invoke(AbstractOptions $options)
+    private function invoke($command, OptionsInterface $options)
     {
-        $this->jobStart($options);
+        $this->event->acknowledge($command, $options);
 
         $result = $this->commands
-            ->make($options->command())
+            ->make($command)
             ->withOptions($options)
             ->execute();
 
-        $this->jobFinish($options);
+        $this->event->finish($command, $options);
 
         return $result;
-    }
-
-    /**
-     * Handles actions related to a job starting
-     *
-     * @param AbstractOptions $options
-     */
-    private function jobStart(AbstractOptions $options)
-    {
-        $this->event->acknowledge($options);
-        $this->logger->info(sprintf('`%s` job started', $options->command()));
-    }
-
-    /**
-     * Handles actions related to a job finishing
-     *
-     * @param AbstractOptions $options
-     */
-    private function jobFinish(AbstractOptions $options)
-    {
-        $this->event->finish($options);
-        $this->logger->info(sprintf('`%s` job finished', $options->command()));
-    }
-
-    /**
-     * Handles actions related to a job shutting down the consumer
-     *
-     * @param AbstractOptions $options
-     */
-    private function jobShutdown(AbstractOptions $options)
-    {
-        $this->logger->notice(sprintf('shutting down by request of `%s`', $options->command()));
-    }
-
-    /**
-     * Handles actions related to job exceptions
-     *
-     * @param AbstractOptions $options
-     * @param Exception $exception
-     */
-    private function jobException(AbstractOptions $options, Exception $exception)
-    {
-        $this->logger->error($exception->getMessage());
-        $this->event->reject($options, $exception);
     }
 }

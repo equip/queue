@@ -2,11 +2,11 @@
 
 namespace Equip\Queue\Fake;
 
+use Equip\Command\OptionsInterface;
+use Equip\Command\OptionsSerializerTrait;
 use Equip\Queue\AbstractOptions;
 
-class Options extends AbstractOptions
+class Options implements OptionsInterface
 {
-    protected $command = 'example-command';
-    protected $handler = 'example-handler';
-    protected $queue = 'example-queue';
+    use OptionsSerializerTrait;
 }

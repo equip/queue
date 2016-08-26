@@ -23,12 +23,9 @@ class RedisDriver implements DriverInterface
     /**
      * @inheritdoc
      */
-    public function enqueue(AbstractOptions $message)
+    public function enqueue($queue, array $message)
     {
-        return (bool) $this->redis->rPush(
-            $message->queue(),
-            serialize($message)
-        );
+        return (bool) $this->redis->rPush($queue, serialize($message));
     }
 
     /**

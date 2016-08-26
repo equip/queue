@@ -20,8 +20,11 @@
         "psr/log": "^1.0"
     },
     "require-dev": {
+        "eloquent/liberator": "^2.0",
+        "eloquent/phony": "^0.13.4",
         "monolog/monolog": "^1.21",
-        "phpunit/phpunit": "^5.4"
+        "phpunit/phpunit": "^5.4",
+        "rdlowrey/auryn": "^1.4"
     },
     "suggest": {
         "monolog/monolog": "For a simple logging implementation of PSR-3"

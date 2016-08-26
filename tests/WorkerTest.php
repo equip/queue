@@ -2,14 +2,13 @@
 
 namespace Equip\Queue;
 
-use Equip\Command\CommandInterface;
+use Eloquent\Liberator\Liberator;
+use Eloquent\Phony\Phpunit\Phony;
+use Equip\Queue\Command\CommandFactoryInterface;
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Fake\Command;
 use Equip\Queue\Fake\Options;
-use Equip\Queue\Handler\CommandFactoryInterface;
-use Equip\Queue\Serializer\JsonSerializer;
-use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
-use Psr\Log\LoggerInterface;
 
 class WorkerTest extends TestCase
 {
@@ -19,11 +18,6 @@ class WorkerTest extends TestCase
     private $driver;
 
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var Event
      */
     private $event;
@@ -31,239 +25,163 @@ class WorkerTest extends TestCase
     /**
      * @var CommandFactoryInterface
      */
-    private $handlers;
+    private $command_factory;
 
     /**
-     * @var CommandInterface
+     * @var string
      */
     private $command;
 
     /**
-     * @var Worker
+     * @var Options
      */
-    private $worker;
+    private $options;
 
     protected function setUp()
     {
-        $this->driver = $this->createMock(DriverInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->event = $this->createMock(Event::class);
-        $this->handlers = $this->createMock(CommandFactoryInterface::class);
-        $this->command = $this->createMock(CommandInterface::class);
+        $this->driver = Phony::mock(DriverInterface::class);
+        $this->event = Phony::mock(Event::class);
+        $this->command_factory = Phony::mock(CommandFactoryInterface::class);
+        $this->command = Phony::partialMock(Command::class);
+        $this->options = new Options;
+    }
 
-        $this->worker = new Worker(
-            $this->driver,
-            $this->event,
-            $this->logger,
-            $this->handlers
+    public function testTicketPacketNull()
+    {
+        // Mock
+        $this->driver->dequeue->returns(null);
+
+        // Execute
+        $result = $this->worker()->tick('test-queue');
+
+        // Verify
+        $this->driver->dequeue->calledWith('test-queue');
+        $this->assertTrue($result);
+    }
+
+    public function testShutdown()
+    {
+        // Mock
+        $this->driver->dequeue->returns(serialize([
+            'command' => get_class($this->command),
+            'options' => $this->options,
+        ]));
+
+        $this->command_factory->make->returns($this->command);
+        $this->command->execute->returns(false);
+
+        // Execute
+        $result = $this->worker()->tick('test-queue');
+
+        // Verify
+        Phony::inOrder(
+            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
+            $this->command->withOptions->calledWith($this->options),
+            $this->event->finish->calledWith(get_class($this->command), $this->options),
+            $this->event->shutdown->calledWith(get_class($this->command))
         );
+
+        $this->assertFalse($result);
     }
 
-    public function testTickPacketNull()
+    public function testException()
     {
-        $queue = 'test-queue';
-        $this->driver
-            ->expects($this->once())
-            ->method('dequeue')
-            ->with($queue)
-            ->willReturn(null);
-
-        $method = static::getProtectedMethod($this->worker, 'tick');
-        $this->assertTrue($method->invoke($this->worker, $queue));
-    }
-
-    public function testTickInvalidHandler()
-    {
-        $message = new Options;
-
-        $this->handlers
-            ->expects($this->once())
-            ->method('get')
-            ->with($message->handler())
-            ->will($this->throwException(new Exception));
-
-        $this->driver
-            ->expects($this->once())
-            ->method('dequeue')
-            ->with($message->queue())
-            ->willReturn(serialize($message));
-
-        $method = static::getProtectedMethod($this->worker, 'tick');
-        $this->assertTrue($method->invoke($this->worker, $message->queue()));
-    }
-
-    public function testTickHandlerException()
-    {
-        $message = new Options;
+        // Mock
         $exception = new Exception;
+        $this->driver->dequeue->returns(serialize([
+            'command' => get_class($this->command),
+            'options' => $this->options,
+        ]));
 
-        $this->driver
-            ->expects($this->once())
-            ->method('dequeue')
-            ->with($message->queue())
-            ->willReturn(serialize($message));
+        $this->command_factory->make->returns($this->command);
+        $this->command->execute->throws($exception);
 
-        $this->event
-            ->expects($this->once())
-            ->method('acknowledge')
-            ->with($message);
+        // Execute
+        $result = $this->worker()->tick('test-queue');
 
-        $this->event
-            ->expects($this->never())
-            ->method('finish')
-            ->with($message);
-
-        $this->event
-            ->expects($this->once())
-            ->method('reject')
-            ->with($message, $exception);
-
-        $this->logger
-            ->expects($this->once())
-            ->method('error')
-            ->with($exception->getMessage());
-
-        $this->handlers
-            ->expects($this->once())
-            ->method('get')
-            ->with($message->handler())
-            ->will($this->throwException($exception));
-
-        $worker = new Worker(
-            $this->driver,
-            $this->event,
-            $this->logger,
-            $this->handlers
+        // Verify
+        Phony::inOrder(
+            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
+            $this->command->withOptions->calledWith($this->options),
+            $this->event->reject->calledWith(get_class($this->command), $this->options, $exception)
         );
 
-        $method = static::getProtectedMethod($worker, 'tick');
-        $this->assertTrue($method->invoke($worker, $message->queue()));
-    }
-
-    public function testTickHandlerReturnFalse()
-    {
-        $message = new Options;
-
-        $this->driver
-            ->expects($this->once())
-            ->method('dequeue')
-            ->with($message->queue())
-            ->willReturn(serialize($message));
-
-        $this->event
-            ->expects($this->once())
-            ->method('acknowledge')
-            ->with($message);
-
-        $this->logger
-            ->expects($this->once())
-            ->method('notice')
-            ->with('shutting down by request of `example-handler`');
-
-        $this->command
-            ->expects($this->once())
-            ->method('withOptions')
-            ->with($message)
-            ->willReturn($this->command);
-
-        $this->handlers
-            ->expects($this->once())
-            ->method('get')
-            ->with($message->handler())
-            ->willReturn($this->command);
-
-        $worker = new Worker(
-            $this->driver,
-            $this->event,
-            $this->logger,
-            $this->handlers
-        );
-
-        $method = static::getProtectedMethod($worker, 'tick');
-        $this->assertFalse($method->invoke($worker, $message->queue()));
+        $this->assertTrue($result);
     }
 
     public function testTick()
     {
-        $message = new Options;
+        // Mock
+        $this->driver->dequeue->returns(serialize([
+            'command' => get_class($this->command),
+            'options' => $this->options,
+        ]));
 
-        $this->driver
-            ->expects($this->once())
-            ->method('dequeue')
-            ->with($message->queue())
-            ->willReturn(serialize($message));
+        $this->command_factory->make->returns($this->command);
+        $this->command->execute->returns(true);
 
-        $this->event
-            ->expects($this->once())
-            ->method('acknowledge')
-            ->with($message);
+        // Execute
+        $result = $this->worker()->tick('test-queue');
 
-        $this->event
-            ->expects($this->once())
-            ->method('finish')
-            ->with($message);
-
-        $this->logger
-            ->expects($this->exactly(2))
-            ->method('info')
-            ->withConsecutive(
-                ['`example-handler` job started'],
-                ['`example-handler` job finished']
-            );
-
-        $this->handlers
-            ->expects($this->once())
-            ->method('get')
-            ->with($message->handler())
-            ->willReturn(function ($data) use ($message) {
-                $this->assertSame($message->handler(), $data->handler());
-            });
-
-        $worker = new Worker(
-            $this->driver,
-            $this->event,
-            $this->logger,
-            $this->handlers
+        // Verify
+        Phony::inOrder(
+            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
+            $this->command->withOptions->calledWith($this->options),
+            $this->event->finish->calledWith(get_class($this->command), $this->options)
         );
 
-        $method = static::getProtectedMethod($worker, 'tick');
-        $this->assertTrue($method->invoke($worker, $message->queue()));
+        $this->assertTrue($result);
     }
 
     public function testConsume()
     {
-        $message = new Options;
+        // Mock
+        $this->driver->dequeue->returns(serialize([
+            'command' => get_class($this->command),
+            'options' => $this->options,
+        ]));
 
-        $this->driver
-            ->expects($this->once())
-            ->method('dequeue')
-            ->with($message->queue())
-            ->willReturn(serialize($message));
+        $this->command_factory->make->returns($this->command);
+        $this->command->execute->returns(false);
 
-        $this->event
-            ->expects($this->once())
-            ->method('acknowledge')
-            ->with($message);
+        // Execute
+        $this->worker()->consume('test-queue');
 
-        $this->event
-            ->expects($this->once())
-            ->method('finish')
-            ->with($message);
+        // Verify
+        Phony::inOrder(
+            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
+            $this->command->withOptions->calledWith($this->options),
+            $this->event->finish->calledWith(get_class($this->command), $this->options)
+        );
+    }
 
-        $this->handlers
-            ->expects($this->once())
-            ->method('get')
-            ->willReturn(function () {
-                return false;
-            });
+    public function testInvoke()
+    {
+        // Mock
+        $this->command_factory->make->returns($this->command);
+        $this->command->execute->returns(true);
 
-        $worker = new Worker(
-            $this->driver,
-            $this->event,
-            $this->logger,
-            $this->handlers
+        // Execute
+        $result = $this->worker()->invoke(get_class($this->command), $this->options);
+
+        // Verify
+        Phony::inOrder(
+            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
+            $this->command->withOptions->calledWith($this->options),
+            $this->event->finish->calledWith(get_class($this->command), $this->options)
         );
 
-        $worker->consume($message->queue());
+        $this->assertTrue($result);
+    }
+
+    private function worker()
+    {
+        $worker = Phony::partialMock(Worker::class, [
+            $this->driver->get(),
+            $this->event->get(),
+            $this->command_factory->get()
+        ]);
+
+        return Liberator::liberate($worker->get());
     }
 }

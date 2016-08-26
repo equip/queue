@@ -2,6 +2,7 @@
 
 namespace Equip\Queue\Driver;
 
+use Equip\Queue\Fake\Command;
 use Equip\Queue\Fake\Options;
 use Equip\Queue\TestCase;
 use Redis;
@@ -26,40 +27,39 @@ class RedisDriverTest extends TestCase
 
     public function testPush()
     {
-        $message = new Options;
+        $message = [
+            'command' => Command::class,
+            'options' => new Options,
+        ];
 
         $this->redis
             ->expects($this->once())
             ->method('rPush')
-            ->with($message->queue(), serialize($message))
+            ->with('test-queue', serialize($message))
             ->willReturn(true);
 
-        $this->assertTrue($this->driver->enqueue($message));
+        $this->assertTrue($this->driver->enqueue('test-queue', $message));
     }
 
     public function testPop()
     {
-        $queue = 'test-queue';
-
         $this->redis
             ->expects($this->once())
             ->method('blPop')
-            ->with($queue, 5)
+            ->with('test-queue', 5)
             ->willReturn(['test', 'example']);
 
-        $this->assertSame('example', $this->driver->dequeue($queue));
+        $this->assertSame('example', $this->driver->dequeue('test-queue'));
     }
 
     public function testPopEmpty()
     {
-        $queue = 'test-queue';
-
         $this->redis
             ->expects($this->once())
             ->method('blPop')
-            ->with($queue, 5)
+            ->with('test-queue', 5)
             ->willReturn(null);
 
-        $this->assertNull($this->driver->dequeue($queue));
+        $this->assertNull($this->driver->dequeue('test-queue'));
     }
 }

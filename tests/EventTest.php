@@ -2,8 +2,11 @@
 
 namespace Equip\Queue;
 
+use Equip\Queue\Fake\Command;
+use Equip\Queue\Fake\Options;
 use Exception;
 use League\Event\EmitterInterface;
+use Psr\Log\LoggerInterface;
 
 class EventTest extends TestCase
 {
@@ -13,25 +16,31 @@ class EventTest extends TestCase
     private $emitter;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var Event
      */
     private $event;
 
     /**
+     * @var Command
+     */
+    private $command;
+    /**
      * @var AbstractOptions
      */
-    private $message;
+    private $options;
 
     protected function setUp()
     {
         $this->emitter = $this->createMock(EmitterInterface::class);
-        $this->event = new Event($this->emitter);
-
-        $this->message = $this->createMock(AbstractOptions::class);
-        $this->message
-            ->expects($this->exactly(2))
-            ->method('handler')
-            ->willReturn('example-handler');
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->event = new Event($this->emitter, $this->logger);
+        $this->command = Command::class;
+        $this->options = new Options;
     }
 
     public function testAcknowledge()
@@ -40,11 +49,11 @@ class EventTest extends TestCase
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::MESSAGE_ACKNOWLEDGE, $this->message],
-                [sprintf('%s.%s', Event::MESSAGE_ACKNOWLEDGE, $this->message->handler()), $this->message]
+                [Event::MESSAGE_ACKNOWLEDGE, $this->options],
+                [sprintf('%s.%s', Event::MESSAGE_ACKNOWLEDGE, $this->command), $this->options]
             );
 
-        $this->event->acknowledge($this->message);
+        $this->event->acknowledge($this->command, $this->options);
     }
 
     public function testFinish()
@@ -53,11 +62,11 @@ class EventTest extends TestCase
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::MESSAGE_FINISH, $this->message],
-                [sprintf('%s.%s', Event::MESSAGE_FINISH, $this->message->handler()), $this->message]
+                [Event::MESSAGE_FINISH, $this->options],
+                [sprintf('%s.%s', Event::MESSAGE_FINISH, $this->command), $this->options]
             );
 
-        $this->event->finish($this->message);
+        $this->event->finish($this->command, $this->options);
     }
 
     public function testReject()
@@ -68,10 +77,23 @@ class EventTest extends TestCase
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::MESSAGE_REJECT, $this->message, $exception],
-                [sprintf('%s.%s', Event::MESSAGE_REJECT, $this->message->handler()), $this->message, $exception]
+                [Event::MESSAGE_REJECT, $this->options, $exception],
+                [sprintf('%s.%s', Event::MESSAGE_REJECT, $this->command), $this->options, $exception]
             );
 
-        $this->event->reject($this->message, $exception);
+        $this->event->reject($this->command, $this->options, $exception);
+    }
+
+    public function testShutdown()
+    {
+        $this->emitter
+            ->expects($this->exactly(2))
+            ->method('emit')
+            ->withConsecutive(
+                [Event::QUEUE_SHUTDOWN],
+                [sprintf('%s.%s', Event::QUEUE_SHUTDOWN, $this->command)]
+            );
+
+        $this->event->shutdown($this->command);
     }
 }

@@ -2,19 +2,32 @@
 
 namespace Equip\Queue\Command;
 
+use Auryn\Injector;
 use Equip\Command\CommandInterface;
 use Equip\Queue\Exception\CommandException;
-use Equip\Queue\Exception\HandlerException;
 
-class SimpleCommandFactory implements CommandFactoryInterface
+class AurynCommandFactory implements CommandFactoryInterface
 {
+    /**
+     * @var Injector
+     */
+    private $injector;
+
+    public function __construct(Injector $injector)
+    {
+        $this->injector = $injector;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function make($command)
     {
         if (!class_exists($command)) {
             throw CommandException::notFound($command);
         }
 
-        $command = new $command;
+        $command = $this->injector->make($command);
 
         if (!($command instanceof CommandInterface)) {
             throw CommandException::invalidCommand($command);
