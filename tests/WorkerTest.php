@@ -4,7 +4,7 @@ namespace Equip\Queue;
 
 use Eloquent\Liberator\Liberator;
 use Eloquent\Phony\Phpunit\Phony;
-use Equip\Queue\Command\AurynCommandFactory;
+use Equip\Queue\Command\CommandFactoryInterface;
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Fake\Command;
 use Equip\Queue\Fake\Options;
@@ -23,7 +23,7 @@ class WorkerTest extends TestCase
     private $event;
 
     /**
-     * @var AurynCommandFactory
+     * @var CommandFactoryInterface
      */
     private $factory;
 
@@ -41,7 +41,7 @@ class WorkerTest extends TestCase
     {
         $this->driver = Phony::mock(DriverInterface::class);
         $this->event = Phony::mock(Event::class);
-        $this->factory = Phony::mock(AurynCommandFactory::class);
+        $this->factory = Phony::mock(CommandFactoryInterface::class);
         $this->command = Phony::partialMock(Command::class);
         $this->options = new Options;
     }

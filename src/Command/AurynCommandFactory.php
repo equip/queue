@@ -6,7 +6,7 @@ use Auryn\Injector;
 use Equip\Command\CommandInterface;
 use Equip\Queue\Exception\CommandException;
 
-class AurynCommandFactory
+class AurynCommandFactory implements CommandFactoryInterface
 {
     /**
      * @var Injector
