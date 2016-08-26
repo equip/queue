@@ -17,17 +17,18 @@
         "php": ">=5.6",
         "equip/command": "^2.0",
         "league/event": "^2.1",
-        "psr/log": "^1.0",
-        "rdlowrey/auryn": "^1.4"
+        "psr/log": "^1.0"
     },
     "require-dev": {
         "eloquent/liberator": "^2.0",
         "eloquent/phony": "^0.13.4",
         "monolog/monolog": "^1.21",
-        "phpunit/phpunit": "^5.4"
+        "phpunit/phpunit": "^5.4",
+        "rdlowrey/auryn": "^1.4"
     },
     "suggest": {
-        "monolog/monolog": "For a simple logging implementation of PSR-3"
+        "monolog/monolog": "For a simple logging implementation of PSR-3",
+        "rdlowrey/auryn": "For AurynCommandFactory which handles dependency injection"
     },
     "autoload": {
         "psr-4": {
