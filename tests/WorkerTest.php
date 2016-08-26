@@ -3,6 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
+use Equip\Queue\Fake\Message;
 use Equip\Queue\Handler\HandlerFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
@@ -27,11 +28,6 @@ class WorkerTest extends TestCase
     private $event;
 
     /**
-     * @var MessageSerializerInterface
-     */
-    private $serializer;
-
-    /**
      * @var HandlerFactoryInterface
      */
     private $handlers;
@@ -46,14 +42,12 @@ class WorkerTest extends TestCase
         $this->driver = $this->createMock(DriverInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = $this->createMock(Event::class);
-        $this->serializer = new JsonSerializer;
         $this->handlers = $this->createMock(HandlerFactoryInterface::class);
 
         $this->worker = new Worker(
             $this->driver,
             $this->event,
             $this->logger,
-            $this->serializer,
             $this->handlers
         );
     }
@@ -73,32 +67,28 @@ class WorkerTest extends TestCase
 
     public function testTickInvalidHandler()
     {
-        $message = [
-            'queue' => 'test-queue',
-            'handler' => 'foo',
-            'data' => ['foo' => 'bar'],
-        ];
+        $message = new Message;
 
         $this->driver
             ->expects($this->once())
             ->method('dequeue')
-            ->with($message['queue'])
-            ->willReturn(json_encode($message));
+            ->with($message->queue())
+            ->willReturn(serialize($message));
 
         $method = static::getProtectedMethod($this->worker, 'tick');
-        $this->assertTrue($method->invoke($this->worker, $message['queue']));
+        $this->assertTrue($method->invoke($this->worker, $message->queue()));
     }
 
     public function testTickHandlerException()
     {
-        $message = new Message('queue', 'foo', ['foo' => 'bar']);
+        $message = new Message;
         $exception = new Exception;
 
         $this->driver
             ->expects($this->once())
             ->method('dequeue')
             ->with($message->queue())
-            ->willReturn($this->serializer->serialize($message));
+            ->willReturn(serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -130,7 +120,6 @@ class WorkerTest extends TestCase
             $this->driver,
             $this->event,
             $this->logger,
-            $this->serializer,
             $this->handlers
         );
 
@@ -140,13 +129,13 @@ class WorkerTest extends TestCase
 
     public function testTickHandlerReturnFalse()
     {
-        $message = new Message('queue', 'foo', ['foo' => 'bar']);
+        $message = new Message;
 
         $this->driver
             ->expects($this->once())
             ->method('dequeue')
             ->with($message->queue())
-            ->willReturn($this->serializer->serialize($message));
+            ->willReturn(serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -156,7 +145,7 @@ class WorkerTest extends TestCase
         $this->logger
             ->expects($this->once())
             ->method('notice')
-            ->with('shutting down by request of `foo`');
+            ->with('shutting down by request of `example-handler`');
 
         $this->handlers
             ->expects($this->once())
@@ -170,7 +159,6 @@ class WorkerTest extends TestCase
             $this->driver,
             $this->event,
             $this->logger,
-            $this->serializer,
             $this->handlers
         );
 
@@ -180,13 +168,13 @@ class WorkerTest extends TestCase
 
     public function testTick()
     {
-        $message = new Message('queue', 'foo', ['name' => 'foo']);
+        $message = new Message;
 
         $this->driver
             ->expects($this->once())
             ->method('dequeue')
             ->with($message->queue())
-            ->willReturn($this->serializer->serialize($message));
+            ->willReturn(serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -202,8 +190,8 @@ class WorkerTest extends TestCase
             ->expects($this->exactly(2))
             ->method('info')
             ->withConsecutive(
-                ['`foo` job started'],
-                ['`foo` job finished']
+                ['`example-handler` job started'],
+                ['`example-handler` job finished']
             );
 
         $this->handlers
@@ -218,7 +206,6 @@ class WorkerTest extends TestCase
             $this->driver,
             $this->event,
             $this->logger,
-            $this->serializer,
             $this->handlers
         );
 
@@ -228,13 +215,13 @@ class WorkerTest extends TestCase
 
     public function testConsume()
     {
-        $message = new Message('queue', 'foo', ['name' => 'foo']);
+        $message = new Message;
 
         $this->driver
             ->expects($this->once())
             ->method('dequeue')
             ->with($message->queue())
-            ->willReturn($this->serializer->serialize($message));
+            ->willReturn(serialize($message));
 
         $this->event
             ->expects($this->once())
@@ -257,7 +244,6 @@ class WorkerTest extends TestCase
             $this->driver,
             $this->event,
             $this->logger,
-            $this->serializer,
             $this->handlers
         );
 

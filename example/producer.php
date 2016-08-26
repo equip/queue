@@ -3,22 +3,15 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use Equip\Queue\Driver\RedisDriver;
-use Equip\Queue\Message;
 use Equip\Queue\Queue;
+use Example\Message;
 
 $redis = new Redis;
 $redis->connect('localhost');
 
-$driver = new RedisDriver($redis);
-
-$queue = new Queue($driver);
-
-$message = new Message(
-    'queue',
-    'handler',
-    ['data' => 'value']
+$queue = new Queue(
+    new RedisDriver($redis)
 );
-
-$result = $queue->add($message);
+$result = $queue->add(new Message());
 
 var_dump($result);

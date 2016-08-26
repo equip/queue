@@ -17,68 +17,61 @@ class EventTest extends TestCase
      */
     private $event;
 
+    /**
+     * @var AbstractMessage
+     */
+    private $message;
+
     protected function setUp()
     {
         $this->emitter = $this->createMock(EmitterInterface::class);
         $this->event = new Event($this->emitter);
+
+        $this->message = $this->createMock(AbstractMessage::class);
+        $this->message
+            ->expects($this->exactly(2))
+            ->method('handler')
+            ->willReturn('example-handler');
     }
 
     public function testAcknowledge()
     {
-        $message = new Message(
-            'queue',
-            'handler',
-            ['foo' => 'bar']
-        );
-
         $this->emitter
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::MESSAGE_ACKNOWLEDGE, $message],
-                [sprintf('%s.%s', Event::MESSAGE_ACKNOWLEDGE, $message->handler()), $message]
+                [Event::MESSAGE_ACKNOWLEDGE, $this->message],
+                [sprintf('%s.%s', Event::MESSAGE_ACKNOWLEDGE, $this->message->handler()), $this->message]
             );
 
-        $this->event->acknowledge($message);
+        $this->event->acknowledge($this->message);
     }
 
     public function testFinish()
     {
-        $message = new Message(
-            'queue',
-            'handler',
-            ['foo' => 'bar']
-        );
-
         $this->emitter
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::MESSAGE_FINISH, $message],
-                [sprintf('%s.%s', Event::MESSAGE_FINISH, $message->handler()), $message]
+                [Event::MESSAGE_FINISH, $this->message],
+                [sprintf('%s.%s', Event::MESSAGE_FINISH, $this->message->handler()), $this->message]
             );
 
-        $this->event->finish($message);
+        $this->event->finish($this->message);
     }
 
     public function testReject()
     {
-        $message = new Message(
-            'queue',
-            'handler',
-            ['foo' => 'bar']
-        );
-
         $exception = new Exception;
 
         $this->emitter
             ->expects($this->exactly(2))
             ->method('emit')
             ->withConsecutive(
-                [Event::MESSAGE_REJECT, $message, $exception],
-                [sprintf('%s.%s', Event::MESSAGE_REJECT, $message->handler()), $message, $exception]
+                [Event::MESSAGE_REJECT, $this->message, $exception],
+                [sprintf('%s.%s', Event::MESSAGE_REJECT, $this->message->handler()), $this->message, $exception]
             );
 
-        $this->event->reject($message, $exception);
+        $this->event->reject($this->message, $exception);
     }
 }
