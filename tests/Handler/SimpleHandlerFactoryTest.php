@@ -15,13 +15,13 @@ class SimpleHandlerFactoryTest extends TestCase
             '/`test` handler not found./'
         );
 
-        $factory = new SimpleHandlerFactory;
+        $factory = new SimpleCommandFactory;
         $factory->get('test');
     }
 
     public function testClassHandler()
     {
-        $factory = new SimpleHandlerFactory([
+        $factory = new SimpleCommandFactory([
             'foobar' => Handler::class,
         ]);
 
@@ -30,7 +30,7 @@ class SimpleHandlerFactoryTest extends TestCase
 
     public function testClosureHandler()
     {
-        $factory = new SimpleHandlerFactory([
+        $factory = new SimpleCommandFactory([
             'foobar' => function () {
                 return true;
             },
@@ -48,7 +48,7 @@ class SimpleHandlerFactoryTest extends TestCase
             '/The handler for `foobar` is invalid./'
         );
 
-        $factory = new SimpleHandlerFactory([
+        $factory = new SimpleCommandFactory([
             'foobar' => 'foobar-test',
         ]);
         $factory->get('foobar');

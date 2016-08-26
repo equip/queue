@@ -4,17 +4,17 @@ namespace Equip\Queue\Exception;
 
 use Exception;
 
-class HandlerException extends Exception
+class CommandException extends Exception
 {
     /**
-     * @param string $handler
+     * @param string $name
      *
      * @return static
      */
-    public static function invalidHandler($handler)
+    public static function invalidCommand($name)
     {
         return new static(
-            sprintf('The handler for `%s` is invalid.', $handler)
+            sprintf('The command for `%s` is invalid.', $name)
         );
     }
 
@@ -26,7 +26,7 @@ class HandlerException extends Exception
     public static function notFound($name)
     {
         return new static(
-            sprintf('`%s` handler not found.', $name)
+            sprintf('`%s` command not found.', $name)
         );
     }
 }

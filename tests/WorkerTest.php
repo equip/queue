@@ -2,9 +2,10 @@
 
 namespace Equip\Queue;
 
+use Equip\Command\CommandInterface;
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Fake\Options;
-use Equip\Queue\Handler\HandlerFactoryInterface;
+use Equip\Queue\Handler\CommandFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 use Exception;
@@ -28,9 +29,14 @@ class WorkerTest extends TestCase
     private $event;
 
     /**
-     * @var HandlerFactoryInterface
+     * @var CommandFactoryInterface
      */
     private $handlers;
+
+    /**
+     * @var CommandInterface
+     */
+    private $command;
 
     /**
      * @var Worker
@@ -42,7 +48,8 @@ class WorkerTest extends TestCase
         $this->driver = $this->createMock(DriverInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = $this->createMock(Event::class);
-        $this->handlers = $this->createMock(HandlerFactoryInterface::class);
+        $this->handlers = $this->createMock(CommandFactoryInterface::class);
+        $this->command = $this->createMock(CommandInterface::class);
 
         $this->worker = new Worker(
             $this->driver,
@@ -68,6 +75,12 @@ class WorkerTest extends TestCase
     public function testTickInvalidHandler()
     {
         $message = new Options;
+
+        $this->handlers
+            ->expects($this->once())
+            ->method('get')
+            ->with($message->handler())
+            ->will($this->throwException(new Exception));
 
         $this->driver
             ->expects($this->once())
@@ -147,13 +160,17 @@ class WorkerTest extends TestCase
             ->method('notice')
             ->with('shutting down by request of `example-handler`');
 
+        $this->command
+            ->expects($this->once())
+            ->method('withOptions')
+            ->with($message)
+            ->willReturn($this->command);
+
         $this->handlers
             ->expects($this->once())
             ->method('get')
             ->with($message->handler())
-            ->willReturn(function () {
-                return false;
-            });
+            ->willReturn($this->command);
 
         $worker = new Worker(
             $this->driver,

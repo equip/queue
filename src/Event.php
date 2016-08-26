@@ -27,46 +27,46 @@ class Event
     /**
      * Emits message acknowledgement events
      *
-     * @param AbstractOptions $message
+     * @param AbstractOptions $options
      */
-    public function acknowledge(AbstractOptions $message)
+    public function acknowledge(AbstractOptions $options)
     {
-        array_map(function ($name) use ($message) {
-            $this->emitter->emit($name, $message);
+        array_map(function ($name) use ($options) {
+            $this->emitter->emit($name, $options);
         }, [
             static::MESSAGE_ACKNOWLEDGE,
-            sprintf('%s.%s', static::MESSAGE_ACKNOWLEDGE, $message->handler())
+            sprintf('%s.%s', static::MESSAGE_ACKNOWLEDGE, $options->command())
         ]);
     }
 
     /**
      * Emits message finished events
      *
-     * @param AbstractOptions $message
+     * @param AbstractOptions $options
      */
-    public function finish(AbstractOptions $message)
+    public function finish(AbstractOptions $options)
     {
-        array_map(function ($name) use ($message) {
-           $this->emitter->emit($name, $message) ;
+        array_map(function ($name) use ($options) {
+           $this->emitter->emit($name, $options) ;
         }, [
             static::MESSAGE_FINISH,
-            sprintf('%s.%s', static::MESSAGE_FINISH, $message->handler())
+            sprintf('%s.%s', static::MESSAGE_FINISH, $options->command())
         ]);
     }
 
     /**
      * Emits message rejection events
      *
-     * @param AbstractOptions $message
+     * @param AbstractOptions $options
      * @param Exception $exception
      */
-    public function reject(AbstractOptions $message, Exception $exception)
+    public function reject(AbstractOptions $options, Exception $exception)
     {
-        array_map(function ($name) use ($message, $exception) {
-            $this->emitter->emit($name, $message, $exception);
+        array_map(function ($name) use ($options, $exception) {
+            $this->emitter->emit($name, $options, $exception);
         }, [
             static::MESSAGE_REJECT,
-            sprintf('%s.%s', static::MESSAGE_REJECT, $message->handler())
+            sprintf('%s.%s', static::MESSAGE_REJECT, $options->command())
         ]);
     }
 }

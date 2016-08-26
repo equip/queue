@@ -4,9 +4,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Equip\Queue\Driver\RedisDriver;
 use Equip\Queue\Event;
-use Equip\Queue\Handler\SimpleHandlerFactory;
+use Equip\Queue\Command\SimpleCommandFactory;
 use Equip\Queue\Worker;
-use Example\ExampleJob;
 use League\Event\Emitter;
 use Monolog\Logger;
 
@@ -17,8 +16,6 @@ $worker = new Worker(
     new RedisDriver($redis),
     new Event(new Emitter),
     new Logger('queue'),
-    new SimpleHandlerFactory([
-        'handler' => ExampleJob::class,
-    ])
+    new SimpleCommandFactory
 );
 $worker->consume('queue');
