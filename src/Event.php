@@ -27,9 +27,9 @@ class Event
     /**
      * Emits message acknowledgement events
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      */
-    public function acknowledge(AbstractMessage $message)
+    public function acknowledge(AbstractOptions $message)
     {
         array_map(function ($name) use ($message) {
             $this->emitter->emit($name, $message);
@@ -42,9 +42,9 @@ class Event
     /**
      * Emits message finished events
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      */
-    public function finish(AbstractMessage $message)
+    public function finish(AbstractOptions $message)
     {
         array_map(function ($name) use ($message) {
            $this->emitter->emit($name, $message) ;
@@ -57,10 +57,10 @@ class Event
     /**
      * Emits message rejection events
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      * @param Exception $exception
      */
-    public function reject(AbstractMessage $message, Exception $exception)
+    public function reject(AbstractOptions $message, Exception $exception)
     {
         array_map(function ($name) use ($message, $exception) {
             $this->emitter->emit($name, $message, $exception);

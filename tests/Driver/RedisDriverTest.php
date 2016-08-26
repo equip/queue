@@ -2,7 +2,7 @@
 
 namespace Equip\Queue\Driver;
 
-use Equip\Queue\Fake\Message;
+use Equip\Queue\Fake\Options;
 use Equip\Queue\TestCase;
 use Redis;
 
@@ -26,7 +26,7 @@ class RedisDriverTest extends TestCase
 
     public function testPush()
     {
-        $message = new Message;
+        $message = new Options;
 
         $this->redis
             ->expects($this->once())

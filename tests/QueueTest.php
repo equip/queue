@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Fake\Message;
+use Equip\Queue\Fake\Options;
 use Equip\Queue\Serializer\MessageSerializerInterface;
 
 class QueueTest extends TestCase
@@ -26,7 +26,7 @@ class QueueTest extends TestCase
 
     public function testAdd()
     {
-        $message = new Message;
+        $message = new Options;
 
         $this->driver
             ->expects($this->once())

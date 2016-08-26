@@ -3,7 +3,7 @@
 namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Fake\Message;
+use Equip\Queue\Fake\Options;
 use Equip\Queue\Handler\HandlerFactoryInterface;
 use Equip\Queue\Serializer\JsonSerializer;
 use Equip\Queue\Serializer\MessageSerializerInterface;
@@ -67,7 +67,7 @@ class WorkerTest extends TestCase
 
     public function testTickInvalidHandler()
     {
-        $message = new Message;
+        $message = new Options;
 
         $this->driver
             ->expects($this->once())
@@ -81,7 +81,7 @@ class WorkerTest extends TestCase
 
     public function testTickHandlerException()
     {
-        $message = new Message;
+        $message = new Options;
         $exception = new Exception;
 
         $this->driver
@@ -129,7 +129,7 @@ class WorkerTest extends TestCase
 
     public function testTickHandlerReturnFalse()
     {
-        $message = new Message;
+        $message = new Options;
 
         $this->driver
             ->expects($this->once())
@@ -168,7 +168,7 @@ class WorkerTest extends TestCase
 
     public function testTick()
     {
-        $message = new Message;
+        $message = new Options;
 
         $this->driver
             ->expects($this->once())
@@ -215,7 +215,7 @@ class WorkerTest extends TestCase
 
     public function testConsume()
     {
-        $message = new Message;
+        $message = new Options;
 
         $this->driver
             ->expects($this->once())

@@ -2,9 +2,9 @@
 
 namespace Example;
 
-use Equip\Queue\AbstractMessage;
+use Equip\Queue\AbstractOptions;
 
-class Message extends AbstractMessage
+class Options extends AbstractOptions
 {
     protected $command = Command::class;
     protected $handler = 'handler';

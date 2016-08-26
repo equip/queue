@@ -18,7 +18,7 @@ class EventTest extends TestCase
     private $event;
 
     /**
-     * @var AbstractMessage
+     * @var AbstractOptions
      */
     private $message;
 
@@ -27,7 +27,7 @@ class EventTest extends TestCase
         $this->emitter = $this->createMock(EmitterInterface::class);
         $this->event = new Event($this->emitter);
 
-        $this->message = $this->createMock(AbstractMessage::class);
+        $this->message = $this->createMock(AbstractOptions::class);
         $this->message
             ->expects($this->exactly(2))
             ->method('handler')

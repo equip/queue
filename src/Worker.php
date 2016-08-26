@@ -88,11 +88,11 @@ class Worker
     /**
      * Invoke the messages handler
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      *
      * @return null|bool
      */
-    private function invoke(AbstractMessage $message)
+    private function invoke(AbstractOptions $message)
     {
         $this->jobStart($message);
 
@@ -109,9 +109,9 @@ class Worker
     /**
      * Handles actions related to a job starting
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      */
-    private function jobStart(AbstractMessage $message)
+    private function jobStart(AbstractOptions $message)
     {
         $this->event->acknowledge($message);
         $this->logger->info(sprintf('`%s` job started', $message->handler()));
@@ -120,9 +120,9 @@ class Worker
     /**
      * Handles actions related to a job finishing
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      */
-    private function jobFinish(AbstractMessage $message)
+    private function jobFinish(AbstractOptions $message)
     {
         $this->event->finish($message);
         $this->logger->info(sprintf('`%s` job finished', $message->handler()));
@@ -131,9 +131,9 @@ class Worker
     /**
      * Handles actions related to a job shutting down the consumer
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      */
-    private function jobShutdown(AbstractMessage $message)
+    private function jobShutdown(AbstractOptions $message)
     {
         $this->logger->notice(sprintf('shutting down by request of `%s`', $message->handler()));
     }
@@ -141,10 +141,10 @@ class Worker
     /**
      * Handles actions related to job exceptions
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      * @param Exception $exception
      */
-    private function jobException(AbstractMessage $message, Exception $exception)
+    private function jobException(AbstractOptions $message, Exception $exception)
     {
         $this->logger->error($exception->getMessage());
         $this->event->reject($message, $exception);

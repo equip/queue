@@ -4,7 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Equip\Queue\Driver\RedisDriver;
 use Equip\Queue\Queue;
-use Example\Message;
+use Example\Options;
 
 $redis = new Redis;
 $redis->connect('localhost');
@@ -12,6 +12,6 @@ $redis->connect('localhost');
 $queue = new Queue(
     new RedisDriver($redis)
 );
-$result = $queue->add(new Message());
+$result = $queue->add(new Options());
 
 var_dump($result);

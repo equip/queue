@@ -6,8 +6,10 @@ use Equip\Command\OptionsInterface;
 use Equip\Command\OptionsSerializerTrait;
 use Equip\Queue\Exception\MessageException;
 
-abstract class AbstractMessage implements OptionsInterface
+abstract class AbstractOptions implements OptionsInterface
 {
+    use OptionsSerializerTrait;
+
     /**
      * @var string
      */

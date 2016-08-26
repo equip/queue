@@ -2,18 +2,18 @@
 
 namespace Equip\Queue\Driver;
 
-use Equip\Queue\AbstractMessage;
+use Equip\Queue\AbstractOptions;
 
 interface DriverInterface
 {
     /**
      * Add a message to the queue
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      *
      * @return bool
      */
-    public function enqueue(AbstractMessage $message);
+    public function enqueue(AbstractOptions $message);
 
     /**
      * Retrieve a message from the queue

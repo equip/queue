@@ -2,9 +2,9 @@
 
 namespace Equip\Queue\Fake;
 
-use Equip\Queue\AbstractMessage;
+use Equip\Queue\AbstractOptions;
 
-class Message extends AbstractMessage
+class Options extends AbstractOptions
 {
     protected $command = 'example-command';
     protected $handler = 'example-handler';

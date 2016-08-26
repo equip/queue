@@ -2,7 +2,7 @@
 
 namespace Equip\Queue\Driver;
 
-use Equip\Queue\AbstractMessage;
+use Equip\Queue\AbstractOptions;
 use Redis;
 
 class RedisDriver implements DriverInterface
@@ -23,7 +23,7 @@ class RedisDriver implements DriverInterface
     /**
      * @inheritdoc
      */
-    public function enqueue(AbstractMessage $message)
+    public function enqueue(AbstractOptions $message)
     {
         return (bool) $this->redis->rPush(
             $message->queue(),

@@ -22,11 +22,11 @@ class Queue
     /**
      * Add a message to the queue
      *
-     * @param AbstractMessage $message
+     * @param AbstractOptions $message
      *
      * @return bool
      */
-    public function add(AbstractMessage $message)
+    public function add(AbstractOptions $message)
     {
         return $this->driver->enqueue($message);
     }
