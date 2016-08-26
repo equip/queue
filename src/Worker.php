@@ -3,8 +3,8 @@
 namespace Equip\Queue;
 
 use Equip\Command\OptionsInterface;
+use Equip\Queue\Command\AurynCommandFactory;
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Command\CommandFactoryInterface;
 use Exception;
 
 class Worker
@@ -20,19 +20,19 @@ class Worker
     private $event;
 
     /**
-     * @var CommandFactoryInterface
+     * @var AurynCommandFactory
      */
     private $commands;
 
     /**
      * @param DriverInterface $driver
      * @param Event $event
-     * @param CommandFactoryInterface $commands
+     * @param AurynCommandFactory $commands
      */
     public function __construct(
         DriverInterface $driver,
         Event $event,
-        CommandFactoryInterface $commands
+        AurynCommandFactory $commands
     ) {
         $this->driver = $driver;
         $this->event = $event;
