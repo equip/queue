@@ -23,13 +23,9 @@ class AurynCommandFactory
      */
     public function make($command)
     {
-        if (!class_exists($command)) {
-            throw CommandException::notFound($command);
-        }
-
         $command = $this->injector->make($command);
 
-        if (!($command instanceof CommandInterface)) {
+        if (!is_a($command, CommandInterface::class)) {
             throw CommandException::invalidCommand($command);
         }
 

@@ -8,5 +8,4 @@ use Equip\Queue\AbstractOptions;
 
 class Options implements OptionsInterface
 {
-    use OptionsSerializerTrait;
 }

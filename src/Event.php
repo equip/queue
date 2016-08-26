@@ -86,7 +86,7 @@ class Event
             sprintf('%s.%s', static::MESSAGE_REJECT, $command)
         ]);
 
-        $this->logger->error($exception->getMessage());
+        $this->logger->error((string) $exception);
     }
 
     /**

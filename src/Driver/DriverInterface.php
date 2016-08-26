@@ -2,8 +2,6 @@
 
 namespace Equip\Queue\Driver;
 
-use Equip\Queue\AbstractOptions;
-
 interface DriverInterface
 {
     /**

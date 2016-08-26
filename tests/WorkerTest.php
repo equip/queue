@@ -25,7 +25,7 @@ class WorkerTest extends TestCase
     /**
      * @var AurynCommandFactory
      */
-    private $command_factory;
+    private $factory;
 
     /**
      * @var string
@@ -41,7 +41,7 @@ class WorkerTest extends TestCase
     {
         $this->driver = Phony::mock(DriverInterface::class);
         $this->event = Phony::mock(Event::class);
-        $this->command_factory = Phony::mock(AurynCommandFactory::class);
+        $this->factory = Phony::mock(AurynCommandFactory::class);
         $this->command = Phony::partialMock(Command::class);
         $this->options = new Options;
     }
@@ -67,7 +67,7 @@ class WorkerTest extends TestCase
             'options' => $this->options,
         ]));
 
-        $this->command_factory->make->returns($this->command);
+        $this->factory->make->returns($this->command);
         $this->command->execute->returns(false);
 
         // Execute
@@ -93,7 +93,7 @@ class WorkerTest extends TestCase
             'options' => $this->options,
         ]));
 
-        $this->command_factory->make->returns($this->command);
+        $this->factory->make->returns($this->command);
         $this->command->execute->throws($exception);
 
         // Execute
@@ -117,7 +117,7 @@ class WorkerTest extends TestCase
             'options' => $this->options,
         ]));
 
-        $this->command_factory->make->returns($this->command);
+        $this->factory->make->returns($this->command);
         $this->command->execute->returns(true);
 
         // Execute
@@ -141,7 +141,7 @@ class WorkerTest extends TestCase
             'options' => $this->options,
         ]));
 
-        $this->command_factory->make->returns($this->command);
+        $this->factory->make->returns($this->command);
         $this->command->execute->returns(false);
 
         // Execute
@@ -158,7 +158,7 @@ class WorkerTest extends TestCase
     public function testInvoke()
     {
         // Mock
-        $this->command_factory->make->returns($this->command);
+        $this->factory->make->returns($this->command);
         $this->command->execute->returns(true);
 
         // Execute
@@ -179,7 +179,7 @@ class WorkerTest extends TestCase
         $worker = Phony::partialMock(Worker::class, [
             $this->driver->get(),
             $this->event->get(),
-            $this->command_factory->get()
+            $this->factory->get()
         ]);
 
         return Liberator::liberate($worker->get());

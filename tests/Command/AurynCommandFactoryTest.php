@@ -25,17 +25,6 @@ class AurynCommandFactoryTest extends TestCase
         $this->factory = new AurynCommandFactory($this->injector);
     }
 
-    public function testNotFound()
-    {
-        $this->setExpectedExceptionRegExp(
-            CommandException::class,
-            '/`test` command not found./',
-            CommandException::NOT_FOUND
-        );
-
-        $this->factory->make('test');
-    }
-
     public function testInvalid()
     {
         $this->setExpectedExceptionRegExp(

@@ -2,7 +2,6 @@
 
 namespace Equip\Queue\Driver;
 
-use Equip\Queue\AbstractOptions;
 use Redis;
 
 class RedisDriver implements DriverInterface

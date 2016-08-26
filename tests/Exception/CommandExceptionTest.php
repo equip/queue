@@ -13,12 +13,4 @@ class CommandExceptionTest extends TestCase
         $this->assertInstanceOf(CommandException::class, $exception);
         $this->assertSame('The command for `test` is invalid.', $exception->getMessage());
     }
-
-    public function testNotFound()
-    {
-        $exception = CommandException::notFound('foobar');
-
-        $this->assertInstanceOf(CommandException::class, $exception);
-        $this->assertSame('`foobar` command not found.', $exception->getMessage());
-    }
 }
