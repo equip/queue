@@ -2,25 +2,14 @@
 
 namespace Example;
 
-use Equip\Command\CommandImmutableOptionsTrait;
-use Equip\Command\CommandInterface;
+use Equip\Queue\QueueableCommand;
 
-class ExampleCommand implements CommandInterface
+class ExampleCommand implements QueueableCommand
 {
-    use CommandImmutableOptionsTrait;
+    private $foo = 'bar';
 
-    /**
-     * @var ExampleOptions
-     */
-    private $options;
-
-    public function withOptions(ExampleOptions $options)
+    public function foo()
     {
-        return $this->copyWithOptions($options);
-    }
-
-    public function execute()
-    {
-        var_dump($this->options, $this->options->test());
+        return $this->foo;
     }
 }

@@ -4,7 +4,6 @@ namespace Equip\Queue;
 
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Fake\Command;
-use Equip\Queue\Fake\Options;
 
 class QueueTest extends TestCase
 {
@@ -26,16 +25,15 @@ class QueueTest extends TestCase
 
     public function testAdd()
     {
-        $command = Command::class;
-        $options = new Options;
+        $command = new Command;
         $queue = 'test-queue';
 
         $this->driver
             ->expects($this->once())
             ->method('enqueue')
-            ->with($queue, compact('command', 'options'))
+            ->with($queue, $command)
             ->willReturn(true);
 
-        $this->assertTrue($this->queue->add($queue, $command, $options));
+        $this->assertTrue($this->queue->add($queue, $command));
     }
 }

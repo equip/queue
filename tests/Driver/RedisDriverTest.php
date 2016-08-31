@@ -3,7 +3,6 @@
 namespace Equip\Queue\Driver;
 
 use Equip\Queue\Fake\Command;
-use Equip\Queue\Fake\Options;
 use Equip\Queue\TestCase;
 use Redis;
 
@@ -27,18 +26,15 @@ class RedisDriverTest extends TestCase
 
     public function testPush()
     {
-        $message = [
-            'command' => Command::class,
-            'options' => new Options,
-        ];
+        $command = new Command;
 
         $this->redis
             ->expects($this->once())
             ->method('rPush')
-            ->with('test-queue', serialize($message))
+            ->with('test-queue', serialize($command))
             ->willReturn(true);
 
-        $this->assertTrue($this->driver->enqueue('test-queue', $message));
+        $this->assertTrue($this->driver->enqueue('test-queue', $command));
     }
 
     public function testPop()

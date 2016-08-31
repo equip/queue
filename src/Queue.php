@@ -25,12 +25,11 @@ class Queue
      *
      * @param string $queue
      * @param string $command
-     * @param mixed $options
      *
      * @return bool
      */
-    public function add($queue, $command, OptionsInterface $options)
+    public function add($queue, $command)
     {
-        return $this->driver->enqueue($queue, compact('command', 'options'));
+        return $this->driver->enqueue($queue, $command);
     }
 }
