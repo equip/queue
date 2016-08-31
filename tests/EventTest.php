@@ -34,7 +34,7 @@ class EventTest extends TestCase
         $this->emitter = $this->createMock(EmitterInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->event = new Event($this->emitter, $this->logger);
-        $this->command = new Command;
+        $this->command = new QueuedCommand(new Command);
     }
 
     public function testAcknowledge()

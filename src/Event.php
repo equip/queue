@@ -42,7 +42,7 @@ class Event
     public function acknowledge($command)
     {
         $this->emitter->emit(static::MESSAGE_ACKNOWLEDGE, $command);
-        $this->logger->info(sprintf('`%s` job started', get_class($command)));
+        $this->logger->info(sprintf('`%s` job started', get_class($command->command())));
     }
 
     /**
@@ -53,7 +53,7 @@ class Event
     public function finish($command)
     {
         $this->emitter->emit(static::MESSAGE_FINISH, $command);
-        $this->logger->info(sprintf('`%s` job finished', get_class($command)));
+        $this->logger->info(sprintf('`%s` job finished', get_class($command->command())));
     }
 
     /**
