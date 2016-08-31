@@ -36,6 +36,8 @@ class Worker
     /**
      * Consumes messages off of the queue
      *
+     * @codeCoverageIgnore
+     *
      * @param string $queue
      */
     public function consume($queue)

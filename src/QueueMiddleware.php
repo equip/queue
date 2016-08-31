@@ -2,6 +2,7 @@
 
 namespace Equip\Queue;
 
+use Exception;
 use League\Tactician\Middleware;
 
 class QueueMiddleware implements Middleware
@@ -59,14 +60,14 @@ class QueueMiddleware implements Middleware
      */
     private function getQueue($command_name)
     {
-        // TODO: refactor this?
         foreach ($this->queue_map as $queue => $commands) {
             if (in_array($command_name, $commands)) {
                 return $queue;
             }
         }
 
-        // TODO: throw exception or just a generic queue?
-        throw new \Exception('no queue belongs to that command');
+        throw new Exception(
+            sprintf('No queue has been set for the `%s` command', $command_name)
+        );
     }
 }
