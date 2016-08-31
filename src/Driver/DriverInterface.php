@@ -5,14 +5,14 @@ namespace Equip\Queue\Driver;
 interface DriverInterface
 {
     /**
-     * Add a message to the queue
+     * Add a command to the queue
      *
      * @param string $queue
-     * @param array $message
+     * @param object $command
      *
      * @return bool
      */
-    public function enqueue($queue, array $message);
+    public function enqueue($queue, $command);
 
     /**
      * Retrieve a message from the queue

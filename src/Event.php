@@ -37,72 +37,34 @@ class Event
     /**
      * Emits message acknowledgement events
      *
-     * @param string $command
-     * @param OptionsInterface $options
+     * @param object $command
      */
-    public function acknowledge($command, OptionsInterface $options)
+    public function acknowledge($command)
     {
-        array_map(function ($name) use ($options) {
-            $this->emitter->emit($name, $options);
-        }, [
-            static::MESSAGE_ACKNOWLEDGE,
-            sprintf('%s.%s', static::MESSAGE_ACKNOWLEDGE, $command)
-        ]);
-
-        $this->logger->info(sprintf('`%s` job started', $command));
+        $this->emitter->emit(static::MESSAGE_ACKNOWLEDGE, $command);
+        $this->logger->info(sprintf('`%s` job started', get_class($command)));
     }
 
     /**
      * Emits message finished events
      *
-     * @param string $command
-     * @param OptionsInterface $options
+     * @param object $command
      */
-    public function finish($command, OptionsInterface $options)
+    public function finish($command)
     {
-        array_map(function ($name) use ($options) {
-           $this->emitter->emit($name, $options) ;
-        }, [
-            static::MESSAGE_FINISH,
-            sprintf('%s.%s', static::MESSAGE_FINISH, $command)
-        ]);
-
-        $this->logger->info(sprintf('`%s` job finished', $command));
+        $this->emitter->emit(static::MESSAGE_FINISH, $command);
+        $this->logger->info(sprintf('`%s` job finished', get_class($command)));
     }
 
     /**
      * Emits message rejection events
      *
-     * @param string $command
-     * @param OptionsInterface $options
+     * @param object $command
      * @param Exception $exception
      */
-    public function reject($command, OptionsInterface $options, Exception $exception)
+    public function reject($command, Exception $exception)
     {
-        array_map(function ($name) use ($options, $exception) {
-            $this->emitter->emit($name, $options, $exception);
-        }, [
-            static::MESSAGE_REJECT,
-            sprintf('%s.%s', static::MESSAGE_REJECT, $command)
-        ]);
-
-        $this->logger->error((string) $exception);
-    }
-
-    /**
-     * Emits message shutdown events
-     *
-     * @param string $command
-     */
-    public function shutdown($command)
-    {
-        array_map(function ($name) {
-            $this->emitter->emit($name) ;
-        }, [
-            static::QUEUE_SHUTDOWN,
-            sprintf('%s.%s', static::QUEUE_SHUTDOWN, $command)
-        ]);
-
-        $this->logger->notice(sprintf('shutting down by request of `%s`', $command));
+        $this->emitter->emit(static::MESSAGE_REJECT, $command, $exception);
+        $this->logger->error($exception->getMessage());
     }
 }

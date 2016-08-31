@@ -2,10 +2,9 @@
 
 namespace Equip\Queue;
 
-use Equip\Command\OptionsInterface;
 use Equip\Queue\Driver\DriverInterface;
-use Equip\Queue\Command\CommandFactoryInterface;
 use Exception;
+use League\Tactician\CommandBus;
 
 class Worker
 {
@@ -20,23 +19,18 @@ class Worker
     private $event;
 
     /**
-     * @var CommandFactoryInterface
+     * @var CommandBus
      */
-    private $commands;
+    private $command_bus;
 
-    /**
-     * @param DriverInterface $driver
-     * @param Event $event
-     * @param CommandFactoryInterface $commands
-     */
     public function __construct(
         DriverInterface $driver,
         Event $event,
-        CommandFactoryInterface $commands
+        CommandBus $command_bus
     ) {
         $this->driver = $driver;
         $this->event = $event;
-        $this->commands = $commands;
+        $this->command_bus = $command_bus;
     }
 
     /**
@@ -58,44 +52,20 @@ class Worker
      */
     protected function tick($queue)
     {
-        $packet = $this->driver->dequeue($queue);
-        if (empty($packet)) {
+        $message = $this->driver->dequeue($queue);
+        if (empty($message)) {
             return true;
         }
 
+        $command = unserialize($message);
         try {
-            list($command, $options) = array_values(unserialize($packet));
-
-            if ($this->invoke($command, $options) === false) {
-                $this->event->shutdown($command);
-                return false;
-            }
+            $this->event->acknowledge($command);
+            $this->command_bus->handle($command);
+            $this->event->finish($command);
         } catch (Exception $exception) {
-            $this->event->reject($command, $options, $exception);
+            $this->event->reject($command, $exception);
         }
 
         return true;
-    }
-
-    /**
-     * Invoke the command with the options
-     *
-     * @param string $command
-     * @param OptionsInterface $options
-     *
-     * @return mixed
-     */
-    private function invoke($command, OptionsInterface $options)
-    {
-        $this->event->acknowledge($command, $options);
-
-        $result = $this->commands
-            ->make($command)
-            ->withOptions($options)
-            ->execute();
-
-        $this->event->finish($command, $options);
-
-        return $result;
     }
 }

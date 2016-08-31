@@ -6,17 +6,12 @@ use Equip\Command\CommandImmutableOptionsTrait;
 use Equip\Command\CommandInterface;
 use Equip\Command\OptionsInterface;
 
-class Command implements CommandInterface
+class Command
 {
-    use CommandImmutableOptionsTrait;
+    private $foo = 'bar';
 
-    public function withOptions(OptionsInterface $options)
+    public function foo()
     {
-        return $this->copyWithOptions($options);
-    }
-
-    public function execute()
-    {
-        return true;
+        return $this->foo;
     }
 }

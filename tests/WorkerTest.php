@@ -4,49 +4,29 @@ namespace Equip\Queue;
 
 use Eloquent\Liberator\Liberator;
 use Eloquent\Phony\Phpunit\Phony;
-use Equip\Queue\Command\CommandFactoryInterface;
 use Equip\Queue\Driver\DriverInterface;
 use Equip\Queue\Fake\Command;
-use Equip\Queue\Fake\Options;
-use Exception;
+use League\Tactician\CommandBus;
 
 class WorkerTest extends TestCase
 {
-    /**
-     * @var DriverInterface
-     */
     private $driver;
 
-    /**
-     * @var Event
-     */
     private $event;
 
-    /**
-     * @var CommandFactoryInterface
-     */
-    private $factory;
+    private $command_bus;
 
-    /**
-     * @var string
-     */
     private $command;
-
-    /**
-     * @var Options
-     */
-    private $options;
 
     protected function setUp()
     {
         $this->driver = Phony::mock(DriverInterface::class);
         $this->event = Phony::mock(Event::class);
-        $this->factory = Phony::mock(CommandFactoryInterface::class);
-        $this->command = Phony::partialMock(Command::class);
-        $this->options = new Options;
+        $this->command_bus = Phony::mock(CommandBus::class);
+        $this->command = new Command;
     }
 
-    public function testTicketPacketNull()
+    public function testTickNoMessage()
     {
         // Mock
         $this->driver->dequeue->returns(null);
@@ -59,117 +39,38 @@ class WorkerTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testShutdown()
+    public function testTick()
     {
         // Mock
-        $this->driver->dequeue->returns(serialize([
-            'command' => get_class($this->command),
-            'options' => $this->options,
-        ]));
-
-        $this->factory->make->returns($this->command);
-        $this->command->execute->returns(false);
+        $this->driver->dequeue->returns(serialize($this->command));
 
         // Execute
         $result = $this->worker()->tick('test-queue');
 
         // Verify
-        Phony::inOrder(
-            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
-            $this->command->withOptions->calledWith($this->options),
-            $this->event->finish->calledWith(get_class($this->command), $this->options),
-            $this->event->shutdown->calledWith(get_class($this->command))
-        );
+        $this->driver->dequeue->calledWith('test-queue');
+        $this->event->acknowledge->calledWith($this->command);
+        $this->command_bus->handle->calledWith($this->command);
+        $this->event->finish->calledWith($this->command);
 
-        $this->assertFalse($result);
+        $this->assertTrue($result);
     }
 
     public function testException()
     {
         // Mock
-        $exception = new Exception;
-        $this->driver->dequeue->returns(serialize([
-            'command' => get_class($this->command),
-            'options' => $this->options,
-        ]));
-
-        $this->factory->make->returns($this->command);
-        $this->command->execute->throws($exception);
+        $exception = new \Exception;
+        $this->driver->dequeue->returns(serialize($this->command));
+        $this->command_bus->handle->throws($exception);
 
         // Execute
         $result = $this->worker()->tick('test-queue');
 
         // Verify
-        Phony::inOrder(
-            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
-            $this->command->withOptions->calledWith($this->options),
-            $this->event->reject->calledWith(get_class($this->command), $this->options, $exception)
-        );
-
-        $this->assertTrue($result);
-    }
-
-    public function testTick()
-    {
-        // Mock
-        $this->driver->dequeue->returns(serialize([
-            'command' => get_class($this->command),
-            'options' => $this->options,
-        ]));
-
-        $this->factory->make->returns($this->command);
-        $this->command->execute->returns(true);
-
-        // Execute
-        $result = $this->worker()->tick('test-queue');
-
-        // Verify
-        Phony::inOrder(
-            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
-            $this->command->withOptions->calledWith($this->options),
-            $this->event->finish->calledWith(get_class($this->command), $this->options)
-        );
-
-        $this->assertTrue($result);
-    }
-
-    public function testConsume()
-    {
-        // Mock
-        $this->driver->dequeue->returns(serialize([
-            'command' => get_class($this->command),
-            'options' => $this->options,
-        ]));
-
-        $this->factory->make->returns($this->command);
-        $this->command->execute->returns(false);
-
-        // Execute
-        $this->worker()->consume('test-queue');
-
-        // Verify
-        Phony::inOrder(
-            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
-            $this->command->withOptions->calledWith($this->options),
-            $this->event->finish->calledWith(get_class($this->command), $this->options)
-        );
-    }
-
-    public function testInvoke()
-    {
-        // Mock
-        $this->factory->make->returns($this->command);
-        $this->command->execute->returns(true);
-
-        // Execute
-        $result = $this->worker()->invoke(get_class($this->command), $this->options);
-
-        // Verify
-        Phony::inOrder(
-            $this->event->acknowledge->calledWith(get_class($this->command), $this->options),
-            $this->command->withOptions->calledWith($this->options),
-            $this->event->finish->calledWith(get_class($this->command), $this->options)
-        );
+        $this->driver->dequeue->calledWith('test-queue');
+        $this->event->acknowledge->calledWith($this->command);
+        $this->command_bus->handle->calledWith($this->command);
+        $this->event->reject->calledWith($this->command, $exception);
 
         $this->assertTrue($result);
     }
@@ -179,7 +80,7 @@ class WorkerTest extends TestCase
         $worker = Phony::partialMock(Worker::class, [
             $this->driver->get(),
             $this->event->get(),
-            $this->factory->get()
+            $this->command_bus->get()
         ]);
 
         return Liberator::liberate($worker->get());
