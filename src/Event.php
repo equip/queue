@@ -13,6 +13,7 @@ class Event
     const MESSAGE_FINISH = 'message.finish';
     const MESSAGE_REJECT = 'message.reject';
     const QUEUE_SHUTDOWN = 'queue.shutdown';
+    const QUEUE_DRAINED = 'queue.drained';
 
     /**
      * @var EmitterInterface
@@ -66,5 +67,23 @@ class Event
     {
         $this->emitter->emit(static::MESSAGE_REJECT, $command, $exception);
         $this->logger->error($exception->getMessage());
+    }
+
+    /**
+     * Handles notifications for shutting down
+     */
+    public function shutdown()
+    {
+        $this->emitter->emit(static::QUEUE_SHUTDOWN);
+        $this->logger->notice('Shutting down');
+    }
+
+    /**
+     * Handles notifications for shutting down when drained
+     */
+    public function drained()
+    {
+        $this->emitter->emit(static::QUEUE_DRAINED);
+        $this->logger->notice('Drained - Shutting down');
     }
 }
