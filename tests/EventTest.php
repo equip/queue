@@ -68,4 +68,24 @@ class EventTest extends TestCase
 
         $this->event->reject($this->command, $exception);
     }
+
+    public function testShutdown()
+    {
+        $this->emitter
+            ->expects($this->once())
+            ->method('emit')
+            ->with(Event::QUEUE_SHUTDOWN);
+
+        $this->event->shutdown();
+    }
+
+    public function testDrained()
+    {
+        $this->emitter
+            ->expects($this->once())
+            ->method('emit')
+            ->with(Event::QUEUE_DRAINED);
+
+        $this->event->drained();
+    }
 }

@@ -14,6 +14,11 @@ class Worker
     private $driver;
 
     /**
+     * @var Queue
+     */
+    private $queue;
+
+    /**
      * @var Event
      */
     private $event;
@@ -23,12 +28,28 @@ class Worker
      */
     private $command_bus;
 
+    /**
+     * Will shutdown the worker on the next tick
+     *
+     * @var bool
+     */
+    private $shutdown = false;
+
+    /**
+     * Will shutdown the worker when the queue is drained
+     *
+     * @var bool
+     */
+    private $drain = false;
+
     public function __construct(
         DriverInterface $driver,
+        Queue $queue,
         Event $event,
         CommandBus $command_bus
     ) {
         $this->driver = $driver;
+        $this->queue = $queue;
         $this->event = $event;
         $this->command_bus = $command_bus;
     }
@@ -42,7 +63,11 @@ class Worker
      */
     public function consume($queue)
     {
-        while ($this->tick($queue)) { /* NOOP */ }
+        $this->bindSignals();
+
+        while ($this->tick($queue)) {
+            pcntl_signal_dispatch();
+        }
     }
 
     /**
@@ -54,8 +79,16 @@ class Worker
      */
     protected function tick($queue)
     {
+        if ($this->shutdown) {
+            $this->event->shutdown();
+            return false;
+        }
+
         $message = $this->driver->dequeue($queue);
-        if (empty($message)) {
+        if (empty($message) && $this->drain) {
+            $this->event->drained();
+            return false;
+        } elseif (empty($message)) {
             return true;
         }
 
@@ -65,9 +98,46 @@ class Worker
             $this->command_bus->handle($command);
             $this->event->finish($command);
         } catch (Exception $exception) {
+            $this->queue->add(sprintf('%s-failed', $queue), $command);
             $this->event->reject($command, $exception);
         }
 
         return true;
+    }
+
+    /**
+     * Handles binding POSIX signals appropriately
+     *
+     * @codeCoverageIgnore
+     */
+    private function bindSignals()
+    {
+        // Shutdown the listener
+        array_map(function ($signal) {
+            pcntl_signal($signal, [$this, 'shutdown']);
+        }, [
+            SIGTERM,
+            SIGINT,
+            SIGQUIT,
+        ]);
+
+        // Drain the queue
+        pcntl_signal(SIGHUP, [$this, 'drain']);
+    }
+
+    /**
+     * Set the worker to shutdown on the next tick
+     */
+    private function shutdown()
+    {
+        $this->shutdown = true;
+    }
+
+    /**
+     * Set the worker to shutdown when the queue is drained
+     */
+    private function drain()
+    {
+        $this->drain = true;
     }
 }

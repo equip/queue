@@ -38,6 +38,7 @@ $bus = new \League\Tactician\CommandBus([
 // Setup worker
 $worker = new \Equip\Queue\Worker(
     $driver,
+    $queue,
     new \Equip\Queue\Event(
         new \League\Event\Emitter(),
         new \Monolog\Logger('queue')

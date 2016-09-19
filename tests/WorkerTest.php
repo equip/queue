@@ -12,6 +12,8 @@ class WorkerTest extends TestCase
 {
     private $driver;
 
+    private $queue;
+
     private $event;
 
     private $command_bus;
@@ -21,6 +23,7 @@ class WorkerTest extends TestCase
     protected function setUp()
     {
         $this->driver = Phony::mock(DriverInterface::class);
+        $this->queue = Phony::mock(Queue::class);
         $this->event = Phony::mock(Event::class);
         $this->command_bus = Phony::mock(CommandBus::class);
         $this->command = new Command;
@@ -75,10 +78,66 @@ class WorkerTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function testShutdown()
+    {
+        // Mock
+        $worker = $this->worker();
+        $worker->shutdown = true;
+
+        // Execute
+        $result = $worker->tick('test');
+
+        // Verify
+        $this->event->shutdown->called();
+
+        $this->assertFalse($result);
+    }
+
+    public function testDrain()
+    {
+        // Mock
+        $worker = $this->worker();
+        $worker->drain = true;
+        $this->driver->dequeue->returns(null);
+
+        // Execute
+        $result = $worker->tick('test');
+
+        // Verify
+        $this->event->drained->called();
+
+        $this->assertFalse($result);
+    }
+
+    public function testShutdownSwitch()
+    {
+        // Mock
+        $worker = $this->worker();
+
+        // Execute
+        $worker->shutdown();
+
+        // Verify
+        $this->assertTrue($worker->shutdown);
+    }
+
+    public function testDrainSwitch()
+    {
+        // Mock
+        $worker = $this->worker();
+
+        // Execute
+        $worker->drain();
+
+        // Verify
+        $this->assertTrue($worker->drain);
+    }
+
     private function worker()
     {
         $worker = Phony::partialMock(Worker::class, [
             $this->driver->get(),
+            $this->queue->get(),
             $this->event->get(),
             $this->command_bus->get()
         ]);
