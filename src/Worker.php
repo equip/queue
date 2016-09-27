@@ -84,18 +84,18 @@ class Worker
             return false;
         }
 
-        $message = $this->driver->dequeue($queue);
-        if (empty($message) && $this->drain) {
+        list($command, $job) = $this->driver->dequeue($queue);
+        if (empty($command) && $this->drain) {
             $this->event->drained();
             return false;
-        } elseif (empty($message)) {
+        } elseif (empty($command)) {
             return true;
         }
 
-        $command = unserialize($message);
         try {
             $this->event->acknowledge($command);
             $this->command_bus->handle($command);
+            $this->driver->processed($job);
             $this->event->finish($command);
         } catch (Exception $exception) {
             $this->queue->add(sprintf('%s-failed', $queue), $command);

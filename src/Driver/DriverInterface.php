@@ -22,4 +22,13 @@ interface DriverInterface
      * @return string
      */
     public function dequeue($queue);
+
+    /**
+     * Marks a job as processed
+     *
+     * @param mixed $job
+     *
+     * @return boolean
+     */
+    public function processed($job);
 }

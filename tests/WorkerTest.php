@@ -45,7 +45,7 @@ class WorkerTest extends TestCase
     public function testTick()
     {
         // Mock
-        $this->driver->dequeue->returns(serialize($this->command));
+        $this->driver->dequeue->returns([$this->command, null]);
 
         // Execute
         $result = $this->worker()->tick('test-queue');
@@ -54,6 +54,7 @@ class WorkerTest extends TestCase
         $this->driver->dequeue->calledWith('test-queue');
         $this->event->acknowledge->calledWith($this->command);
         $this->command_bus->handle->calledWith($this->command);
+        $this->driver->processed->calledWith(null);
         $this->event->finish->calledWith($this->command);
 
         $this->assertTrue($result);
@@ -63,7 +64,7 @@ class WorkerTest extends TestCase
     {
         // Mock
         $exception = new \Exception;
-        $this->driver->dequeue->returns(serialize($this->command));
+        $this->driver->dequeue->returns([$this->command, null]);
         $this->command_bus->handle->throws($exception);
 
         // Execute
