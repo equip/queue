@@ -4,6 +4,8 @@ namespace Equip\Queue\Driver;
 
 interface DriverInterface
 {
+    const TIMEOUT = 5;
+
     /**
      * Add a command to the queue
      *

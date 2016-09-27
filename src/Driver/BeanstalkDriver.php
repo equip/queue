@@ -38,7 +38,7 @@ class BeanstalkDriver implements DriverInterface
         $job = $this->beanstalk
             ->watch($queue)
             ->ignore('default')
-            ->reserve(5);
+            ->reserve(static::TIMEOUT);
 
         $data = $job instanceof Job ? $job->getData() : $job;
         return [
