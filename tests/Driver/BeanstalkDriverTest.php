@@ -101,7 +101,7 @@ class BeanstalkDriverTest extends TestCase
 
     public function testProcessed()
     {
-        $job = new \stdClass();
+        $job = new \stdClass;
 
         $this->beanstalk
             ->expects($this->once())
