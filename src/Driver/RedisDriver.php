@@ -32,8 +32,19 @@ class RedisDriver implements DriverInterface
      */
     public function dequeue($queue)
     {
-        list($_, $message) = $this->redis->blPop($queue, 5) ?: null;
+        list(, $message) = $this->redis->blPop($queue, static::TIMEOUT) ?: null;
 
-        return $message;
+        return [
+            unserialize($message),
+            null,
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function processed($job)
+    {
+        return true;
     }
 }
