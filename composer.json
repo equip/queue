@@ -21,7 +21,7 @@
     },
     "require-dev": {
         "eloquent/liberator": "^2.0",
-        "eloquent/phony": "^0.13.4",
+        "eloquent/phony": "0.13.4",
         "monolog/monolog": "^1.21",
         "pda/pheanstalk": "^3.1",
         "phpunit/phpunit": "^5.4"
