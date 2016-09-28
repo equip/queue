@@ -128,7 +128,7 @@ class Worker
     /**
      * Set the worker to shutdown on the next tick
      */
-    private function shutdown()
+    public function shutdown()
     {
         $this->shutdown = true;
     }
@@ -136,7 +136,7 @@ class Worker
     /**
      * Set the worker to shutdown when the queue is drained
      */
-    private function drain()
+    public function drain()
     {
         $this->drain = true;
     }
