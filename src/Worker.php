@@ -95,11 +95,12 @@ class Worker
         try {
             $this->event->acknowledge($command);
             $this->command_bus->handle($command);
-            $this->driver->processed($job);
             $this->event->finish($command);
         } catch (Exception $exception) {
             $this->queue->add(sprintf('%s-failed', $queue), $command);
             $this->event->reject($command, $exception);
+        } finally {
+            $this->driver->processed($job);
         }
 
         return true;

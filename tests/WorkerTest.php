@@ -64,7 +64,8 @@ class WorkerTest extends TestCase
     {
         // Mock
         $exception = new \Exception;
-        $this->driver->dequeue->returns([$this->command, null]);
+        $job = new \stdClass();
+        $this->driver->dequeue->returns([$this->command, $job]);
         $this->command_bus->handle->throws($exception);
 
         // Execute
@@ -75,6 +76,7 @@ class WorkerTest extends TestCase
         $this->event->acknowledge->calledWith($this->command);
         $this->command_bus->handle->calledWith($this->command);
         $this->event->reject->calledWith($this->command, $exception);
+        $this->driver->processed->calledWith($job);
 
         $this->assertTrue($result);
     }
