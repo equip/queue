@@ -2,7 +2,6 @@
 
 namespace Equip\Queue;
 
-use Equip\Command\OptionsInterface;
 use Exception;
 use League\Event\EmitterInterface;
 use Psr\Log\LoggerInterface;
@@ -66,7 +65,7 @@ class Event
     public function reject($command, Exception $exception)
     {
         $this->emitter->emit(static::MESSAGE_REJECT, $command, $exception);
-        $this->logger->error($exception->getMessage());
+        $this->logger->error($exception->getMessage(), compact('exception'));
     }
 
     /**
